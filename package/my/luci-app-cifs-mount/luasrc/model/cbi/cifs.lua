@@ -18,18 +18,21 @@ s.template = "cbi/tblsection"
 
 server = s:option(Value, "server", translate("Server IP"))
 server.rmempty = false
-server.width = "15%"
+server.width = "14%"
+server.size = 14
 
 name = s:option(Value, "name", translate("Share Folder"))
 name.rmempty = false
-name.width = "15%"
+name.width = "14%"
+name.size = 14
 
 pth = s:option(Value, "natpath", translate("Mount Path"))
 if nixio.fs.access("/etc/config/fstab") then
         pth.titleref = luci.dispatcher.build_url("admin", "system", "fstab")
 end
 pth.rmempty = false
-pth.width = "15%"
+pth.width = "14%"
+pth.size = 14
 
 smbver = s:option(ListValue, "smbver", translate("SMB Version"))
 smbver.rmempty = false
@@ -48,15 +51,18 @@ agm.width = "10%"
 
 iocharset = s:option(Value, "iocharset", translate("Charset"))
 iocharset.default = "utf8"
-iocharset.width = "8%"
+iocharset.width = "7%"
+iocharset.size = 7
 
 users = s:option(Value, "users", translate("User"))
 users.rmempty = true
 users.default = "guest"
-users.width = "10%"
+users.width = "12%"
+users.size = 10
 
 pwd = s:option(Value, "pwd", translate("Password"))
 pwd.rmempty = true
-pwd.width = "10%"
+pwd.width = "12%"
+pwd.size = 10
 
 return m
