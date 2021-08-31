@@ -31,7 +31,7 @@ end
 pth.rmempty = false
 pth.width = "15%"
 
-smbver = s:option(Value, "smbver", translate("SMB Version"))
+smbver = s:option(ListValue, "smbver", translate("SMB Version"))
 smbver.rmempty = false
 smbver:value("1.0","SMB v1")
 smbver:value("2.0","SMB v2")
@@ -39,7 +39,7 @@ smbver:value("3.0","SMB v3")
 smbver.default = "2.0"
 smbver.width = "10%"
 
-agm = s:option(Value, "agm", translate("Arguments"))
+agm = s:option(ListValue, "agm", translate("Arguments"))
 agm:value("ro", translate("Read Only"))
 agm:value("rw", translate("Read/Write"))
 agm.rmempty = true
@@ -47,12 +47,10 @@ agm.default = "ro"
 agm.width = "10%"
 
 iocharset = s:option(Value, "iocharset", translate("Charset"))
-iocharset:value("utf8", "UTF8")
 iocharset.default = "utf8"
 iocharset.width = "8%"
 
 users = s:option(Value, "users", translate("User"))
-users:value("guest", "Guest")
 users.rmempty = true
 users.default = "guest"
 users.width = "10%"
