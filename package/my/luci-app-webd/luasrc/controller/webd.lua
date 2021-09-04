@@ -5,8 +5,8 @@ function index()
 		return
     end
     
-	entry({"admin", "services", "webd"}, cbi("webd"), _("Web Filemanage"), 200).dependent=false
-	entry({"admin", "services", "webd","status"},call("act_status")).leaf=true
+	entry({"admin", "nas", "webd"}, cbi("webd"), _("Web Filemanage"), 200).dependent=false
+	entry({"admin", "nas", "webd","status"},call("act_status")).leaf=true
 
 end
 
