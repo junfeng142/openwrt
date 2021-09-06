@@ -7,6 +7,6 @@ function index()
 	end
 
     	entry({"admin", "nas"}, firstchild(), "NAS", 44).dependent = false
-	entry({"admin", "nas", "cifs"}, cbi("cifs"), _("Mount SMB NetShare"),280).dependent = true
+	entry({"admin", "nas", "cifs"}, cbi("cifs"), _("Mount SMB NetShare"),200).dependent = true
 
 end
