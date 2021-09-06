@@ -5,7 +5,7 @@ function index()
 		return
     end
 
-    entry({"admin", "nas", "baidupcs-web"}, cbi("baidupcs-web"), _("BaiduPCS Web"), 180).dependent = true
+    entry({"admin", "nas", "baidupcs-web"}, cbi("baidupcs-web"), _("BaiduPCS Web"), 300).dependent = true
     entry({"admin", "nas", "baidupcs-web", "status"}, call("act_status")).leaf = true
 end
 
