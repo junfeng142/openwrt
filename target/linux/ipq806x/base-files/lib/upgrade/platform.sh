@@ -21,18 +21,12 @@ platform_do_upgrade() {
 	netgear,r7500v2 |\
 	netgear,r7800 |\
 	qcom,ipq8064-ap148 |\
-	qcom,ipq8064-ap161)
+	qcom,ipq8064-ap161 |\
+	zyxel,nbg6817)
 		nand_do_upgrade "$1"
 		;;
-	zyxel,nbg6817)
-		zyxel_do_upgrade "$1"
-		;;
-	linksys,ea7500-v1 |\
 	linksys,ea8500)
 		platform_do_upgrade_linksys "$1"
-		;;
-	ruijie,rg-mtfi-m520)
-		ruijie_do_upgrade "$1"
 		;;
 	tplink,c2600)
 		PART_NAME="os-image:rootfs"
@@ -44,8 +38,17 @@ platform_do_upgrade() {
 		MTD_CONFIG_ARGS="-s 0x200000"
 		default_do_upgrade "$1"
 		;;
+	nec,wg2600hp |\
 	*)
 		default_do_upgrade "$1"
+		;;
+	esac
+}
+
+platform_nand_pre_upgrade() {
+	case "$(board_name)" in
+	zyxel,nbg6817)
+		zyxel_do_upgrade "$1"
 		;;
 	esac
 }

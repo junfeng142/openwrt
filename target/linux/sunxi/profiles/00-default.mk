@@ -8,6 +8,7 @@
 define Profile/Default
   NAME:=Default Profile (all drivers)
   PACKAGES:= \
+	kmod-ata-core \
 	kmod-ata-sunxi \
 	kmod-brcmfmac \
 	kmod-rtc-sunxi \
@@ -16,7 +17,7 @@ define Profile/Default
 	kmod-sun4i-emac \
 	rtl8188eu-firmware \
 	swconfig \
-	wpad-basic-wolfssl
+	wpad-basic
   PRIORITY := 1
 endef
 

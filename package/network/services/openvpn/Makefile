@@ -9,14 +9,14 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openvpn
 
-PKG_VERSION:=2.4.9
-PKG_RELEASE:=2
+PKG_VERSION:=2.4.11
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=\
 	https://build.openvpn.net/downloads/releases/ \
 	https://swupdate.openvpn.net/community/releases/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_HASH:=641f3add8694b2ccc39fd4fd92554e4f089ad16a8db6d2b473ec284839a5ebe2
+PKG_HASH:=e579eff218ab1d765965e64a917927504d8324717afdfcd56850f6b83ba8441b
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
@@ -102,7 +102,6 @@ endef
 
 define Package/openvpn-$(BUILD_VARIANT)/conffiles
 /etc/config/openvpn
-/etc/openvpn.user
 endef
 
 define Package/openvpn-$(BUILD_VARIANT)/install
@@ -112,9 +111,7 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 		$(1)/etc/init.d \
 		$(1)/etc/config \
 		$(1)/etc/openvpn \
-		$(1)/lib/upgrade/keep.d \
-		$(1)/usr/libexec \
-		$(1)/etc/hotplug.d/openvpn
+		$(1)/lib/upgrade/keep.d
 
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/sbin/openvpn \
@@ -123,19 +120,6 @@ define Package/openvpn-$(BUILD_VARIANT)/install
 	$(INSTALL_BIN) \
 		files/openvpn.init \
 		$(1)/etc/init.d/openvpn
-
-	$(INSTALL_BIN) \
-		files/usr/libexec/openvpn-hotplug \
-		$(1)/usr/libexec/openvpn-hotplug
-
-	$(INSTALL_DATA) \
-		files/etc/hotplug.d/openvpn/01-user \
-		$(1)/etc/hotplug.d/openvpn/01-user
-
-	$(INSTALL_DATA) \
-		files/etc/openvpn.user \
-		$(1)/etc/openvpn.user
-
 	$(INSTALL_DATA) \
 		files/openvpn.options \
 		$(1)/usr/share/openvpn/openvpn.options

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 BOOTPART=/dev/sda1
 
 move_config() {

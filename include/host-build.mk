@@ -184,17 +184,19 @@ ifndef DUMP
     clean-build: host-clean-build
   endif
 
+  $(DL_DIR)/$(FILE): FORCE
+
   $(_host_target)host-prepare: $(HOST_STAMP_PREPARED)
   $(_host_target)host-configure: $(HOST_STAMP_CONFIGURED)
   $(_host_target)host-compile: $(HOST_STAMP_BUILT) $(HOST_STAMP_INSTALLED)
   host-install: host-compile
 
   host-clean-build: FORCE
-	$(call Host/Uninstall)
 	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_BUILT)
 
   host-clean: host-clean-build
 	$(call Host/Clean)
+	$(call Host/Uninstall)
 	rm -rf $(HOST_STAMP_INSTALLED)
 
     ifneq ($(CONFIG_AUTOREMOVE),)

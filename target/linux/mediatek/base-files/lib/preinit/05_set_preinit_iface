@@ -1,5 +1,7 @@
+#!/bin/sh
+
 set_preinit_iface() {
-	ip link set eth0 up
+	ifconfig eth0 up
 	ifname=lan1
 }
 

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 do_sysinfo_imx6() {
 	. /lib/imx6.sh
 

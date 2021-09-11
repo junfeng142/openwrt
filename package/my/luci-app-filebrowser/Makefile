@@ -21,7 +21,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for Filebrowser
 	PKGARCH:=all
-	DEPENDS:=+filebrowser
+	DEPENDS:=
 endef
 
 define Package/$(PKG_NAME)/description

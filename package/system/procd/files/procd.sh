@@ -48,6 +48,15 @@ _PROCD_SERVICE=
 procd_lock() {
 	local basescript=$(readlink "$initscript")
 	local service_name="$(basename ${basescript:-$initscript})"
+
+	flock -n 1000 &> /dev/null
+	if [ "$?" != "0" ]; then
+		exec 1000>"$IPKG_INSTROOT/var/lock/procd_${service_name}.lock"
+		flock 1000
+		if [ "$?" != "0" ]; then
+			logger "warning: procd flock for $service_name failed"
+		fi
+	fi
 }
 
 _procd_call() {
@@ -185,11 +194,6 @@ _procd_add_jail() {
 		procfs)	json_add_boolean "procfs" "1";;
 		sysfs)	json_add_boolean "sysfs" "1";;
 		ronly)	json_add_boolean "ronly" "1";;
-		requirejail)	json_add_boolean "requirejail" "1";;
-		netns)	json_add_boolean "netns" "1";;
-		userns)	json_add_boolean "userns" "1";;
-		cgroupsns)	json_add_boolean "cgroupsns" "1";;
-		console)	json_add_boolean "console" "1";;
 		esac
 	done
 	json_add_object "mount"
@@ -252,8 +256,7 @@ _procd_set_param() {
 		reload_signal)
 			json_add_int "$type" $(kill -l "$1")
 		;;
-		pidfile|user|group|seccomp|capabilities|facility|\
-		extroot|overlaydir|tmpoverlaysize)
+		pidfile|user|group|seccomp|capabilities|facility)
 			json_add_string "$type" "$1"
 		;;
 		stdout|stderr|no_new_privs)
@@ -404,12 +407,12 @@ _procd_add_instance() {
 
 procd_running() {
 	local service="$1"
-	local instance="${2:-*}"
-	[ "$instance" = "*" ] || instance="'$instance'"
+	local instance="${2:-instance1}"
+	local running
 
 	json_init
 	json_add_string name "$service"
-	local running=$(_procd_ubus_call list | jsonfilter -l 1 -e "@['$service'].instances[$instance].running")
+	running=$(_procd_ubus_call list | jsonfilter -e "@['$service'].instances['$instance'].running")
 
 	[ "$running" = "true" ]
 }
@@ -438,31 +441,6 @@ _procd_send_signal() {
 	[ -n "$instance" -a "$instance" != "*" ] && json_add_string instance "$instance"
 	[ -n "$signal" ] && json_add_int signal "$signal"
 	_procd_ubus_call signal
-}
-
-_procd_status() {
-	local service="$1"
-	local instance="$2"
-	local data
-
-	json_init
-	[ -n "$service" ] && json_add_string name "$service"
-
-	data=$(_procd_ubus_call list | jsonfilter -e '@["'"$service"'"]')
-	[ -z "$data" ] && { echo "inactive"; return 3; }
-
-	data=$(echo "$data" | jsonfilter -e '$.instances')
-	if [ -z "$data" ]; then
-		[ -z "$instance" ] && { echo "active with no instances"; return 0; }
-		data="[]"
-	fi
-
-	[ -n "$instance" ] && instance="\"$instance\"" || instance='*'
-	if [ -z "$(echo "$data" | jsonfilter -e '$['"$instance"']')" ]; then
-		echo "unknown instance $instance"; return 4
-	else
-		echo "running"; return 0
-	fi
 }
 
 procd_open_data() {
@@ -520,10 +498,10 @@ uci_validate_section()
 	local _result
 	local _error
 	shift; shift; shift
-	_result=$(/sbin/validate_data "$_package" "$_type" "$_name" "$@" 2> /dev/null)
+	_result=`/sbin/validate_data "$_package" "$_type" "$_name" "$@" 2> /dev/null`
 	_error=$?
 	eval "$_result"
-	[ "$_error" = "0" ] || $(/sbin/validate_data "$_package" "$_type" "$_name" "$@" 1> /dev/null)
+	[ "$_error" = "0" ] || `/sbin/validate_data "$_package" "$_type" "$_name" "$@" 1> /dev/null`
 	return $_error
 }
 

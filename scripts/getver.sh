@@ -12,7 +12,7 @@ try_version() {
 }
 
 try_git() {
-	REBOOT=97a4ffcc125611dd5f307d54570373832a73e62d
+	REBOOT=ee53a240ac902dc83209008a2671e7fdcf55957a
 	git rev-parse --git-dir >/dev/null 2>&1 || return 1
 
 	[ -n "$GET_REV" ] || GET_REV="HEAD"
@@ -26,7 +26,7 @@ try_git() {
 	*)
 		BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 		ORIGIN="$(git rev-parse --verify --symbolic-full-name ${BRANCH}@{u} 2>/dev/null)"
-		[ -n "$ORIGIN" ] || ORIGIN="$(git rev-parse --verify --symbolic-full-name master@{u} 2>/dev/null)"
+		[ -n "$ORIGIN" ] || ORIGIN="$(git rev-parse --verify --symbolic-full-name openwrt-19.07@{u} 2>/dev/null)"
 		REV="$(git rev-list ${REBOOT}..$GET_REV | wc -l | awk '{print $1}')"
 
 		if [ -n "$ORIGIN" ]; then

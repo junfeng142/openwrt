@@ -21,6 +21,8 @@
 };
 
 &eth1 {
+	status = "okay";
+
 	mtd-mac-address = <&info 0x8>;
 
 	gmac-config {

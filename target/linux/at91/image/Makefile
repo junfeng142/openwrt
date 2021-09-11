@@ -13,7 +13,12 @@ define Build/at91-install-zImage
     $(CP) $(KDIR)/zImage $@
 endef
 
-include $(SUBTARGET).mk
+ifeq ($(SUBTARGET),sam9x)
+include ./sam9x.mk
+endif
+ifeq ($(SUBTARGET),sama5)
+include ./sama5.mk
+endif
 
 AT91_SD_BOOT_PARTSIZE:=64
 FAT32_BLOCK_SIZE:=1024
@@ -33,6 +38,37 @@ endef
 
 define Device/dtb
   KERNEL := kernel-bin | lzma | uImage lzma
+endef
+
+define Build/at91-sdcard
+  $(if $(findstring ext4,$@), \
+  rm -f $@.boot
+  mkfs.fat -C $@.boot $(FAT32_BLOCKS)
+
+  mcopy -i $@.boot $(KDIR)/zImage ::zImage
+
+  $(foreach dts,$(DEVICE_DTS), \
+     mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb \
+        ::$(dts).dtb)
+
+  mcopy -i $@.boot \
+    $(BIN_DIR)/u-boot-$(DEVICE_NAME:at91-%=%)_mmc/u-boot.bin \
+    ::u-boot.bin
+
+  mcopy -i $@.boot \
+    $(BIN_DIR)/at91bootstrap-$(DEVICE_NAME:at91-%=%)sd*/at91bootstrap.bin \
+    ::BOOT.bin
+
+  ./gen_at91_sdcard_img.sh \
+      $@.img \
+      $@.boot \
+      $(KDIR)/root.ext4 \
+      $(AT91_SD_BOOT_PARTSIZE) \
+      $(CONFIG_TARGET_ROOTFS_PARTSIZE)
+
+  gzip -nc9 $@.img > $@
+
+  rm -f $@.img $@.boot )
 endef
 
 define Device/evaluation-sdimage
@@ -58,8 +94,6 @@ define Device/evaluation-dtb
   $(Device/evaluation-zImage)
   IMAGES += dtb
   IMAGE/dtb := install-dtb
-  KERNEL_SUFFIX := -fit-zImage.itb
-  KERNEL := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
 endef
 
 define Device/evaluation-fit

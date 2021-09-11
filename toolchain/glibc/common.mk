@@ -7,12 +7,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=glibc
-PKG_VERSION:=2.31
+PKG_VERSION:=2.27
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=3a44844c97a8ca1d0798c45b5252e6a49f9cf8e1
-PKG_MIRROR_HASH:=d7206510e494b3c723173d8ec0dd2e41314da59075871c5642324688001b3f6e
+PKG_SOURCE_VERSION:=daf88b1dd1a41fcb324801c02ead7a8d5aac3851
+PKG_MIRROR_HASH:=fc78ef46c52c922ea44d079533d4d3017a0c921b4ed9aab8bb1dd071322b169f
 PKG_SOURCE_URL:=https://sourceware.org/git/glibc.git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
 
@@ -39,6 +39,7 @@ ifeq ($(ARCH),mips64)
   endif
 endif
 
+
 # -Os miscompiles w. 2.24 gcc5/gcc6
 # only -O2 tested by upstream changeset
 # "Optimize i386 syscall inlining for GCC 5"
@@ -59,10 +60,7 @@ GLIBC_CONFIGURE:= \
 		--without-gd \
 		--without-cvs \
 		--enable-add-ons \
-		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp \
-		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_REGULAR),--enable-stack-protector=yes) \
-		  $(if $(CONFIG_PKG_CC_STACKPROTECTOR_STRONG),--enable-stack-protector=strong) \
-		--enable-kernel=4.14.0
+		--$(if $(CONFIG_SOFT_FLOAT),without,with)-fp
 
 export libc_cv_ssp=no
 export libc_cv_ssp_strong=no

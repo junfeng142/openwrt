@@ -19,7 +19,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for BaiduPCS-Go
 	PKGARCH:=all
-	DEPENDS:=+baidupcs-web +wget +openssl-util
+	DEPENDS:=+wget +openssl-util
 endef
 
 define Package/$(PKG_NAME)/description

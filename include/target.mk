@@ -13,17 +13,12 @@ __target_inc=1
 DEVICE_TYPE?=router
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd urandom-seed urngd \
-block-mount coremark kmod-nf-nathelper kmod-nf-nathelper-extra kmod-ipt-raw wget libustream-openssl ca-certificates \
-default-settings luci luci-app-ddns luci-app-upnp luci-app-ssr-plus \
-luci-app-ramfree luci-app-sfe luci-app-cpufreq luci-app-zerotier\
-ddns-scripts_aliyun ddns-scripts_dnspod
-# For the basic set
-DEFAULT_PACKAGES.basic:=
+DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd urandom-seed urngd wget luci default-settings luci-app-ddns ddns-scripts_aliyun ddns-scripts_dnspod luci-app-ramfree luci-app-ssr-plus luci-app-upnp luci-app-zerotier
 # For nas targets
 DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm
 # For router targets
-DEFAULT_PACKAGES.router:=dnsmasq-full iptables ppp ppp-mod-pppoe firewall
+DEFAULT_PACKAGES.router:=dnsmasq-full iptables ppp ppp-mod-pppoe firewall kmod-ipt-offload kmod-tcp-bbr coremark
+DEFAULT_PACKAGES.bootloader:=
 
 ifneq ($(DUMP),)
   all: dumpinfo
@@ -54,6 +49,10 @@ else
   ifneq ($(SUBTARGET),)
     -include ./$(SUBTARGET)/target.mk
   endif
+endif
+
+ifneq ($(filter 4.9,$(KERNEL_PATCHVER)),)
+  DEFAULT_PACKAGES.router:=$(filter-out kmod-ipt-offload,$(DEFAULT_PACKAGES.router))
 endif
 
 # Add device specific packages (here below to allow device type set from subtarget)

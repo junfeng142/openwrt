@@ -1,3 +1,5 @@
+#!/bin/sh
+
 CNS3XXX_BOARD_NAME=
 CNS3XXX_MODEL=
 

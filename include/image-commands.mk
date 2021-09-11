@@ -3,10 +3,6 @@
 IMAGE_KERNEL = $(word 1,$^)
 IMAGE_ROOTFS = $(word 2,$^)
 
-define rootfs_align
-$(patsubst %-256k,0x40000,$(patsubst %-128k,0x20000,$(patsubst %-64k,0x10000,$(patsubst squashfs%,0x4,$(patsubst root.%,%,$(1))))))
-endef
-
 define Build/uImage
 	mkimage -A $(LINUX_KARCH) \
 		-O linux -T kernel \
@@ -113,13 +109,10 @@ endef
 # append a fake/empty uImage header, to fool bootloaders rootfs integrity check
 # for example
 define Build/append-uImage-fakehdr
-	$(eval type=$(word 1,$(1)))
-	$(eval magic=$(word 2,$(1)))
 	touch $@.fakehdr
 	$(STAGING_DIR_HOST)/bin/mkimage \
-		-A $(LINUX_KARCH) -O linux -T $(type) -C none \
-		-n '$(VERSION_DIST) fake $(type)' \
-		$(if $(magic),-M $(magic)) \
+		-A $(LINUX_KARCH) -O linux -T $(1) -C none \
+		-n '$(VERSION_DIST) fake $(1)' \
 		-d $@.fakehdr \
 		-s \
 		$@.fakehdr
@@ -143,13 +136,10 @@ define Build/append-dtb
 endef
 
 define Build/install-dtb
-	$(call locked, \
-		$(foreach dts,$(DEVICE_DTS), \
-			$(CP) \
-				$(DTS_DIR)/$(dts).dtb \
-				$(BIN_DIR)/$(IMG_PREFIX)-$(dts).dtb; \
-		), \
-		install-dtb-$(IMG_PREFIX) \
+	$(foreach dts,$(DEVICE_DTS), \
+		$(CP) \
+			$(DTS_DIR)/$(dts).dtb \
+			$(BIN_DIR)/$(IMG_PREFIX)-$(dts).dtb; \
 	)
 endef
 
@@ -240,7 +230,8 @@ define Build/append-uboot
 endef
 
 define Build/pad-to
-	$(call Image/pad-to,$@,$(1))
+	dd if=$@ of=$@.new bs=$(1) conv=sync
+	mv $@.new $@
 endef
 
 define Build/pad-extra
@@ -269,15 +260,8 @@ define Build/xor-image
 endef
 
 define Build/check-size
-	@[ $$(($(subst k,* 1024,$(subst m, * 1024k,$(if $(1),$(1),$(IMAGE_SIZE)))))) -ge "$$(stat -c%s $@)" ] || { \
+	@[ $$(($(subst k,* 1024,$(subst m, * 1024k,$(1))))) -ge "$$(stat -c%s $@)" ] || { \
 		echo "WARNING: Image file $@ is too big" >&2; \
-		rm -f $@; \
-	}
-endef
-
-define Build/check-kernel-size
-	@[ $$(($(subst k,* 1024,$(subst m, * 1024k,$(1))))) -ge "$$(stat -c%s $(IMAGE_KERNEL))" ] || { \
-		echo "WARNING: Kernel for $@ is too big > $(1)" >&2; \
 		rm -f $@; \
 	}
 endef
@@ -308,13 +292,6 @@ define Build/openmesh-image
 		"$@-fwupgrade.cfg" "fwupgrade.cfg" \
 		"$(call param_get_default,kernel,$(1),$(IMAGE_KERNEL))" "kernel" \
 		"$(call param_get_default,rootfs,$(1),$@)" "rootfs"
-endef
-
-define Build/qsdk-ipq-factory-mmc
-	$(TOPDIR)/scripts/mkits-qsdk-ipq-image.sh \
-		$@.its kernel $(IMAGE_KERNEL) rootfs $(IMAGE_ROOTFS)
-	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
-	@mv $@.new $@
 endef
 
 define Build/qsdk-ipq-factory-nand
@@ -351,24 +328,6 @@ define Build/tplink-v1-header
 		-m $(TPLINK_HEADER_VERSION) -N "$(VERSION_DIST)" -V $(REVISION) \
 		-k $@ -o $@.new $(1)
 	@mv $@.new $@
-endef
-
-# combine kernel and rootfs into one image
-# mktplinkfw <type> <optional extra arguments to mktplinkfw binary>
-# <type> is "sysupgrade" or "factory"
-#
-# -a align the rootfs start on an <align> bytes boundary
-# -j add jffs2 end-of-filesystem markers
-# -s strip padding from end of the image
-# -X reserve <size> bytes in the firmware image (hexval prefixed with 0x)
-define Build/tplink-v1-image
-	-$(STAGING_DIR_HOST)/bin/mktplinkfw \
-		-H $(TPLINK_HWID) -W $(TPLINK_HWREV) -F $(TPLINK_FLASHLAYOUT) \
-		-N "$(VERSION_DIST)" -V $(REVISION) -m $(TPLINK_HEADER_VERSION) \
-		-k $(IMAGE_KERNEL) -r $(IMAGE_ROOTFS) -o $@.new -j -X 0x40000 \
-		-a $(call rootfs_align,$(FILESYSTEM)) \
-		$(wordlist 2,$(words $(1)),$(1)) \
-		$(if $(findstring sysupgrade,$(word 1,$(1))),-s) && mv $@.new $@ || rm -f $@
 endef
 
 define Build/tplink-v2-header
@@ -420,11 +379,4 @@ endef
 define Build/kernel2minor
 	kernel2minor -k $@ -r $@.new $(1)
 	mv $@.new $@
-endef
-
-# Convert a raw image into a $1 type image.
-# E.g. | qemu-image vdi
-define Build/qemu-image
-	qemu-img convert -f raw -O $1 $@ $@.new
-	@mv $@.new $@
 endef
