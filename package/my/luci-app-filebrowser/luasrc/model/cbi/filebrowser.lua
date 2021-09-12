@@ -70,6 +70,7 @@ local dpath = dir .. "/filebrowser"
 local tempath = "/tmp/filebrowser-tmp/"
 local filepath = ""
 
+sys.call("/bin/mkdir -p '".. dir .."'")
 fs.mkdir(tempath)
 http.setfilehandler(
 	function(meta, chunk, eof)

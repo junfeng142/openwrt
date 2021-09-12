@@ -74,6 +74,7 @@ local dpath = dir .. "/baidupcs-web"
 local tempath = "/tmp/baidupcs-tmp/"
 local filepath = ""
 
+sys.call("/bin/mkdir -p '".. dir .."'")
 fs.mkdir(tempath)
 http.setfilehandler(
 	function(meta, chunk, eof)
