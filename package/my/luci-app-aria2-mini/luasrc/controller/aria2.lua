@@ -18,7 +18,7 @@ function index()
 		return
 	end
 
-	entry({"admin", "nas", "aria2"}, cbi("aria2"), _("Aria2"), 280).dependent = true
+	entry({"admin", "nas", "aria2"}, cbi("aria2"), _("Aria2"), 220).dependent = true
 	entry({"admin", "nas", "aria2", "status"}, call("status")).leaf = true
 
 end
