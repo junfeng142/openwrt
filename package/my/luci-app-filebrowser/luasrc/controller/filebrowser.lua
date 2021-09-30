@@ -5,7 +5,7 @@ function index()
 		return
     end
 
-    entry({"admin", "nas", "filebrowser"}, cbi("filebrowser"), _("FileBrowser"), 220).dependent = true
+    entry({"admin", "nas", "filebrowser"}, cbi("filebrowser"), _("FileBrowser"), 300).dependent = true
     entry({"admin", "nas", "filebrowser", "status"}, call("act_status")).leaf = true
 end
 
