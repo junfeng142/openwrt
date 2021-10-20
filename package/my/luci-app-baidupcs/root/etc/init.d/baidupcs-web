@@ -21,7 +21,7 @@ AU_VALUE=$(config_t_get service au_value)
 AS_VALUE=$(config_t_get service as_value)
 AP_VALUE=$(config_t_get service ap_value)
 PD_VALUE=$(config_t_get service pd_value)
-PROJDIR=$(echo -n $(uci get baidupcs-web.project.project_path) | sed 's/\/$//')
+PROJDIR=$(echo -n $(uci get baidupcs-web.service.project_path) | sed 's/\/$//')
 BAIDUPCS="$PROJDIR/baidupcs-web"
 
 if [ "$AP_VALUE" == "" ];then
