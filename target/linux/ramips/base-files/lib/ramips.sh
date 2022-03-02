@@ -418,6 +418,9 @@ ramips_board_detect() {
 	*"RE6500")
 		name="re6500"
 		;;
+	*"RE-SP-01B")
+		name="re-sp-01b"
+		;;
 	*"RN502J")
 		name="xdxrn502j"
 		;;
