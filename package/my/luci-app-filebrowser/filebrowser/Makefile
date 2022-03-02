@@ -1,19 +1,19 @@
 #
 # Copyright (C) 2020 Project OpenWrt
-# This is free software, licensed under the GNU General Public License v3.
+# This is free software, licensed under the GNU General Public License v3
 # See /LICENSE.txt for more information.
 #
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=filebrowser
-PKG_VERSION:=2.17.2
+PKG_VERSION:=2.12.1
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=bf303c5
+PKG_SOURCE_VERSION:=e9c0369
 PKG_SOURCE_URL:=https://github.com/filebrowser/filebrowser
-PKG_MIRROR_HASH:=21cfb55f8a9b6830164ab5c0825b05a1173b6813fd3224e85030a9555c60663b
+PKG_MIRROR_HASH:=7ab5e1acbea7dcd18051350dbd23761004d13e843c19bc3ce60af1273943bb62
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE.txt
@@ -68,6 +68,9 @@ endif
 
 define Build/Compile
 ( \
+  cd $(PKG_BUILD_DIR) ; \
+  rm -rf frontend/dist ; \
+  rm -f http/rice-box.go ; \
   cd $(PKG_BUILD_DIR)/frontend ; \
   npm ci; \
   npm run lint ; \
@@ -84,7 +87,9 @@ endef
 
 define Package/filebrowser/install
 	$(call GoPackage/Package/Install/Bin,$(PKG_INSTALL_DIR))
-	$(INSTALL_DIR) $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/etc/config/ $(1)/etc/init.d/ $(1)/usr/bin/
+	$(INSTALL_CONF) $(CURDIR)/files/filebrowser.config $(1)/etc/config/filebrowser
+	$(INSTALL_BIN) $(CURDIR)/files/filebrowser.init $(1)/etc/init.d/filebrowser
 	$(INSTALL_BIN) $(GO_PKG_BUILD_BIN_DIR)/filebrowser $(1)/usr/bin/filebrowser
 endef
 
