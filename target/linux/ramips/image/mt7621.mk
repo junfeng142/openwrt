@@ -315,6 +315,15 @@ define Device/newifi-d1
 endef
 TARGET_DEVICES += newifi-d1
 
+define Device/re-sp-01b
+  DTS := RE-SP-01B
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := JD-Cloud RE-SP-01B
+  DEVICE_PACKAGES := \
+	kmod-mt7603 kmod-mt7615e kmod-usb3 kmod-sdhci-mt7620 wpad-openssl
+endef
+TARGET_DEVICES += re-sp-01b
+
 define Device/d-team_newifi-d2
   DTS := Newifi-D2
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
