@@ -126,6 +126,25 @@
 	mtd-mac-address-ascii = <&config 0x4429>;
 };
 
+&switch0 {
+	ports {
+		port@0 {
+			status = "okay";
+			label = "wan";
+		};
+
+		port@1 {
+			status = "okay";
+			label = "lan1";
+		};
+
+		port@2 {
+			status = "okay";
+			label = "lan2";
+		};
+	};
+};
+
 &sdhci {
 	status = "okay";
 };
