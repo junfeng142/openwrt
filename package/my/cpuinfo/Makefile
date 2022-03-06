@@ -31,7 +31,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/etc
 	cp -pR ./files/* $(1)/etc
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./uci-defaults/091-cover-default $(1)/etc/uci-defaults/091-cover-default
+	$(INSTALL_BIN) ./uci-defaults/089-cover-default $(1)/etc/uci-defaults/089-cover-default
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))

@@ -23,7 +23,7 @@ define Package/default-settings
   PKGARCH:=all
   DEPENDS:=+luci-base +luci +luci-compat +@LUCI_LANG_zh-cn +@LUCI_LANG_zh_Hans \
 +block-mount +kmod-fs-ext4 +kmod-fs-vfat +libblkid +kmod-usb-storage \
-+kmod-usb-storage-extras +!TARGET_ramips:kmod-usb-storage-uas +antfs-mount
++kmod-usb-storage-extras +!TARGET_ramips:kmod-usb-storage-uas +antfs-mount +iptables-mod-fullconenat
 endef
 
 define Package/default-settings/description
