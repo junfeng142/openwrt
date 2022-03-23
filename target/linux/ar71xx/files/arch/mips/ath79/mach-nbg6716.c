@@ -203,11 +203,11 @@ static struct gpio_keys_button nbg6616_gpio_keys[] __initdata = {
 	},
 	{
 		.desc		= "RFKILL button",
-		.type		= EV_SW,
+		.type		= EV_KEY,
 		.code		= KEY_RFKILL,
 		.debounce_interval = NBG6716_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= NBG6716_GPIO_BTN_RFKILL,
-		.active_low	= 0,
+		.active_low	= 1,
 	},
 	{
 		.desc		= "WPS button",

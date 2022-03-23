@@ -256,9 +256,7 @@ static int rb2011_nand_scan_fixup(struct mtd_info *mtd)
 {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,0)
 	struct nand_chip *chip = mtd->priv;
-#else
-	struct nand_chip *chip = mtd_to_nand(mtd);
-#endif /* < 4.6.0 */
+#endif
 
 	if (mtd->writesize == 512) {
 		/*
@@ -271,8 +269,6 @@ static int rb2011_nand_scan_fixup(struct mtd_info *mtd)
 		mtd_set_ooblayout(mtd, &rb2011_nand_ecclayout_ops);
 #endif
 	}
-
-	chip->options = NAND_NO_SUBPAGE_WRITE;
 
 	return 0;
 }

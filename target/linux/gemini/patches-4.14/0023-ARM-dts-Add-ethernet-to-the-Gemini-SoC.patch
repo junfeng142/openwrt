@@ -30,7 +30,7 @@ Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
  					};
  				};
  				pci_default_pins: pinctrl-pci {
-@@ -317,6 +324,41 @@
+@@ -316,6 +323,41 @@
  			};
  		};
  

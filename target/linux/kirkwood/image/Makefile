@@ -32,7 +32,7 @@ define Device/cisco_on100
   DEVICE_DTS := kirkwood-on100
   DEVICE_PACKAGES := kmod-i2c-mv64xxx
   KERNEL_SIZE := 5376k
-  KERNEL_IN_UBI :=
+  KERNEL_IN_UBI := 0
   UBINIZE_OPTS := -E 5
   IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
   BOARD_NAME := on100
@@ -50,7 +50,7 @@ TARGET_DEVICES += cloudengines_pogoe02
 define Device/cloudengines_pogoplugv4
   DEVICE_TITLE := Cloud Engines Pogoplug V4
   DEVICE_DTS := kirkwood-pogoplug-series-4
-  DEVICE_PACKAGES := kmod-usb3 kmod-gpio-button-hotplug
+  DEVICE_PACKAGES := kmod-usb3
 endef
 TARGET_DEVICES += cloudengines_pogoplugv4
 
@@ -71,8 +71,8 @@ define Device/iom_ix2_200
   SUBPAGESIZE := 256
   BLOCKSIZE := 16KiB
   KERNEL_SIZE := 3072k
-  KERNEL_IN_UBI :=
-  UBINIZE_OPTS := -E 5
+  KERNEL_IN_UBI := 0
+  UBINIZE_OPTS := -E 5  
   IMAGE_SIZE := 32505856
   IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi | check-size $$$$(IMAGE_SIZE)
 endef
@@ -82,11 +82,8 @@ define Device/linksys_audi
   DEVICE_TITLE := Linksys EA3500 (Audi)
   DEVICE_PACKAGES := kmod-mwl8k swconfig wpad-basic kmod-gpio-button-hotplug
   DEVICE_DTS := kirkwood-linksys-audi
-  PAGESIZE := 512
-  SUBPAGESIZE := 256
-  BLOCKSIZE := 16KiB
   KERNEL_SIZE := 2624k
-  KERNEL_IN_UBI :=
+  KERNEL_IN_UBI := 0
   UBINIZE_OPTS := -E 5
   IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
   BOARD_NAME := linksys-audi
@@ -99,7 +96,7 @@ define Device/linksys_viper
   DEVICE_PACKAGES := kmod-mwl8k swconfig wpad-basic kmod-gpio-button-hotplug
   DEVICE_DTS := kirkwood-linksys-viper
   KERNEL_SIZE := 2688k
-  KERNEL_IN_UBI :=
+  KERNEL_IN_UBI := 0
   UBINIZE_OPTS := -E 5
   IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
   BOARD_NAME := linksys-viper

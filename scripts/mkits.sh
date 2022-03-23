@@ -59,7 +59,7 @@ ARCH_UPPER=`echo $ARCH | tr '[:lower:]' '[:upper:]'`
 
 # Conditionally create fdt information
 if [ -n "${DTB}" ]; then
-	FDT_NODE="
+	FDT="
 		fdt@1 {
 			description = \"${ARCH_UPPER} OpenWrt ${DEVICE} device tree blob\";
 			data = /incbin/(\"${DTB}\");
@@ -74,7 +74,6 @@ if [ -n "${DTB}" ]; then
 			};
 		};
 "
-	FDT_PROP="fdt = \"fdt@1\";"
 fi
 
 # Create a default, fully populated DTS file
@@ -101,7 +100,9 @@ DATA="/dts-v1/;
 				algo = \"sha1\";
 			};
 		};
-${FDT_NODE}
+
+${FDT}
+
 	};
 
 	configurations {
@@ -109,7 +110,7 @@ ${FDT_NODE}
 		${CONFIG} {
 			description = \"OpenWrt\";
 			kernel = \"kernel@1\";
-			${FDT_PROP}
+			fdt = \"fdt@1\";
 		};
 	};
 };"

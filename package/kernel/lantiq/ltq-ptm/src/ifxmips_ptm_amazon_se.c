@@ -40,8 +40,6 @@
 #include <linux/proc_fs.h>
 #include <linux/init.h>
 #include <linux/ioctl.h>
-#include <linux/platform_device.h>
-#include <linux/reset.h>
 #include <asm/delay.h>
 
 /*
@@ -86,7 +84,7 @@
  */
 static inline void init_pmu(void);
 static inline void uninit_pmu(void);
-static inline void reset_ppe(struct platform_device *pdev);
+static inline void reset_ppe(void);
 static inline void init_ema(void);
 static inline void init_mailbox(void);
 static inline void init_atm_tc(void);
@@ -131,7 +129,7 @@ static inline void uninit_pmu(void)
     //PPE_TOP_PMU_SETUP(IFX_PMU_DISABLE);
 }
 
-static inline void reset_ppe(struct platform_device *pdev)
+static inline void reset_ppe(void)
 {
 #ifdef MODULE
     unsigned int etop_cfg;
@@ -262,11 +260,11 @@ extern void ifx_ptm_get_fw_ver(unsigned int *major, unsigned int *minor)
     *minor = FW_VER_ID->minor;
 }
 
-void ifx_ptm_init_chip(struct platform_device *pdev)
+void ifx_ptm_init_chip(void)
 {
     init_pmu();
 
-    reset_ppe(pdev);
+    reset_ppe();
 
     init_ema();
 

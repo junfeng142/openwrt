@@ -7,7 +7,15 @@
 #include "qca953x.dtsi"
 
 / {
-	gpio_leds: leds {
+	chosen {
+		bootargs = "console=ttyS0,115200n8";
+	};
+
+	aliases {
+		label-mac-device = &wmac;
+	};
+
+	leds: leds {
 		compatible = "gpio-leds";
 
 		wifi {
@@ -16,7 +24,7 @@
 			linux,default-trigger = "phy0tpt";
 		};
 
-		qss_led: qss {
+		led_qss: qss {
 			label = "tp-link:green:qss";
 			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 		};
@@ -72,6 +80,7 @@
 
 &spi {
 	status = "okay";
+
 	num-cs = <1>;
 
 	flash@0 {
@@ -111,6 +120,7 @@
 
 &eth0 {
 	status = "okay";
+
 	phy-handle = <&swphy4>;
 
 	mtd-mac-address = <&uboot 0x1fc00>;
@@ -119,6 +129,7 @@
 
 &wmac {
 	status = "okay";
+
 	mtd-cal-data = <&art 0x1000>;
 	mtd-mac-address = <&uboot 0x1fc00>;
 };

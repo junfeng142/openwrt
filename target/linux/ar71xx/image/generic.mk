@@ -1,5 +1,4 @@
-DEVICE_VARS += DAP_SIGNATURE NETGEAR_BOARD_ID NETGEAR_HW_ID NETGEAR_KERNEL_MAGIC ROOTFS_SIZE
-DEVICE_VARS += SEAMA_SIGNATURE SEAMA_MTDBLOCK
+DEVICE_VARS += DAP_SIGNATURE NETGEAR_BOARD_ID NETGEAR_HW_ID NETGEAR_KERNEL_MAGIC ROOTFS_SIZE SEAMA_SIGNATURE
 
 define Build/alfa-network-rootfs-header
 	mkimage \
@@ -11,6 +10,10 @@ endef
 define Build/append-md5sum-bin
 	$(STAGING_DIR_HOST)/bin/mkhash md5 $@ | sed 's/../\\\\x&/g' |\
 		xargs echo -ne >> $@
+endef
+
+define Build/append-string
+	echo -n $(1) >> $@
 endef
 
 define Build/mkwrggimg
@@ -65,6 +68,15 @@ define Build/relocate-kernel
 	) > "$@.new"
 	mv "$@.new" "$@"
 	rm -rf $@.relocate
+endef
+
+define Build/seama
+	$(STAGING_DIR_HOST)/bin/seama -i $@ $(if $(1),$(1),-m "dev=/dev/mtdblock/1" -m "type=firmware")
+	mv $@.seama $@
+endef
+
+define Build/seama-seal
+	$(call Build/seama,-s $@.seama $(1))
 endef
 
 define Build/teltonika-fw-fake-checksum
@@ -136,6 +148,7 @@ define Device/ap91-5g
   IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs |\
 	pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
 endef
+TARGET_DEVICES += ap91-5g
 
 define Device/arduino-yun
   DEVICE_TITLE := Arduino Yun
@@ -186,7 +199,7 @@ TARGET_DEVICES += cf-e320n-v2
 
 define Device/cf-e355ac-v1
   DEVICE_TITLE := COMFAST CF-E355AC v1
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca988x-ct \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca988x \
 	-swconfig -uboot-envtools
   BOARDNAME := CF-E355AC-V1
   IMAGE_SIZE := 16192k
@@ -197,7 +210,7 @@ TARGET_DEVICES += cf-e355ac-v1
 define Device/cf-e355ac-v2
   $(Device/cf-e355ac-v1)
   DEVICE_TITLE := COMFAST CF-E355AC v2
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca9888-ct \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca9888 \
 	-swconfig -uboot-envtools
   BOARDNAME := CF-E355AC-V2
 endef
@@ -205,7 +218,7 @@ TARGET_DEVICES += cf-e355ac-v2
 
 define Device/cf-e375ac
   DEVICE_TITLE := COMFAST CF-E375AC
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca9888-ct \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca9888 \
 	-uboot-envtools
   BOARDNAME := CF-E375AC
   IMAGE_SIZE := 16000k
@@ -215,7 +228,7 @@ TARGET_DEVICES += cf-e375ac
 
 define Device/cf-e380ac-v1
   DEVICE_TITLE := COMFAST CF-E380AC v1
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca988x-ct \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca988x \
 	-swconfig -uboot-envtools
   BOARDNAME := CF-E380AC-V1
   IMAGE_SIZE := 16128k
@@ -234,7 +247,7 @@ TARGET_DEVICES += cf-e380ac-v2
 
 define Device/cf-e385ac
   DEVICE_TITLE := COMFAST CF-E385AC
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca9984-ct \
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca9984 \
 	-uboot-envtools
   BOARDNAME := CF-E385AC
   IMAGE_SIZE := 16000k
@@ -295,7 +308,7 @@ TARGET_DEVICES += dragino2
 
 define Device/e1700ac-v2-16M
   DEVICE_TITLE := Qxwlan E1700AC v2 (16MB flash)
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct kmod-usb-core \
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x kmod-usb-core \
 	kmod-usb2 kmod-usb-ledtrig-usbport
   BOARDNAME := E1700AC-V2
   SUPPORTED_DEVICES := e1700ac-v2
@@ -353,7 +366,7 @@ TARGET_DEVICES += e600g-v2-8M
 
 define Device/e600gac-v2-16M
   DEVICE_TITLE := Qxwlan E600GAC v2 (16MB flash)
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct kmod-usb-core \
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9887 kmod-usb-core \
 	kmod-usb2 -swconfig
   BOARDNAME := E600GAC-V2
   SUPPORTED_DEVICES := e600gac-v2
@@ -462,7 +475,7 @@ define Device/gl-ar150
   BOARDNAME := GL-AR150
   IMAGE_SIZE := 16000k
   CONSOLE := ttyATH0,115200
-  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-ar150
 
@@ -486,7 +499,7 @@ TARGET_DEVICES += gl-ar300m
 
 define Device/gl-ar750
   DEVICE_TITLE := GL.iNet GL-AR750
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct kmod-usb-core \
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9887 kmod-usb-core \
 	kmod-usb2 kmod-usb-storage
   BOARDNAME := GL-AR750
   SUPPORTED_DEVICES := gl-ar750
@@ -499,7 +512,7 @@ TARGET_DEVICES += gl-ar750
 
 define Device/gl-ar750s
   DEVICE_TITLE := GL.iNet GL-AR750S
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct kmod-usb-core \
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9887 kmod-usb-core \
 	kmod-usb2 kmod-usb-storage
   BOARDNAME := GL-AR750S
   SUPPORTED_DEVICES := gl-ar750s
@@ -516,7 +529,7 @@ define Device/gl-domino
   BOARDNAME := DOMINO
   IMAGE_SIZE := 16000k
   CONSOLE := ttyATH0,115200
-  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-domino
 
@@ -526,7 +539,7 @@ define Device/gl-mifi
   BOARDNAME := GL-MIFI
   IMAGE_SIZE := 16000k
   CONSOLE := ttyATH0,115200
-  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
+  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-mifi
 
@@ -547,7 +560,7 @@ define Device/lan-turtle
   $(Device/tplink-16mlzma)
   DEVICE_TITLE := Hak5 LAN Turtle
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage \
-	-kmod-ath9k -swconfig -uboot-envtools -wpad-basic
+	-kmod-ath9k -swconfig -uboot-envtools -wpad-mini
   BOARDNAME := LAN-TURTLE
   DEVICE_PROFILE := LANTURTLE
   TPLINK_HWID := 0x5348334c
@@ -648,6 +661,7 @@ define Device/wndr3800
   DEVICE_TITLE := NETGEAR WNDR3800
   NETGEAR_BOARD_ID := WNDR3800
   NETGEAR_HW_ID := 29763654+16+128
+  DEVICE_PACKAGES := luci-app-ipsec-vpnd automount
 endef
 TARGET_DEVICES += wndr3800
 
@@ -704,7 +718,7 @@ define Device/packet-squirrel
   $(Device/tplink-16mlzma)
   DEVICE_TITLE := Hak5 Packet Squirrel
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 \
-	-kmod-ath9k -swconfig -uboot-envtools -wpad-basic
+	-kmod-ath9k -swconfig -uboot-envtools -wpad-mini
   BOARDNAME := PACKET-SQUIRREL
   DEVICE_PROFILE := PACKETSQUIRREL
   TPLINK_HWID := 0x5351524c
@@ -809,14 +823,17 @@ define Device/jwap230
 endef
 TARGET_DEVICES += jwap230
 
-define Device/koala
-  DEVICE_TITLE := OCEDO Koala
-  BOARDNAME := KOALA
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
-  IMAGE_SIZE := 7424k
-  MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),7424k(firmware),1536k(kernel2),5888k(rootfs2),1088k(data)ro,64k(id)ro,64k(art)ro
+define Device/k2t
+  DEVICE_TITLE := Phicomm K2T 
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9888
+  BOARDNAME := K2T
+  IMAGE_SIZE := 15744k
+  MTDPARTS := spi0.0:192k(u-boot)ro,64k(config)ro,320k(permanent),15744k(firmware),64k(art)ro
+  SUPPORTED_DEVICES := k2t
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
-TARGET_DEVICES += koala
+TARGET_DEVICES += k2t
 
 define Device/r36a
   DEVICE_TITLE := ALFA Network R36A
@@ -864,7 +881,7 @@ TARGET_DEVICES += rut900
 define Device/mc-mac1200r
   $(Device/tplink-8mlzma)
   DEVICE_TITLE := Mercury MAC1200R
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := MC-MAC1200R
   DEVICE_PROFILE := MAC1200R
   TPLINK_HWID := 0x12000001
@@ -883,16 +900,6 @@ define Device/minibox-v1
 endef
 TARGET_DEVICES += minibox-v1
 
-define Device/minibox-v3.2
-  $(Device/tplink-16mlzma)
-  DEVICE_TITLE := Gainstrong MiniBox V3.2
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca9887-ct -swconfig
-  BOARDNAME := MINIBOX-V3.2
-  DEVICE_PROFILE := MINIBOXV32
-  TPLINK_HWID := 0x3C00010C
-endef
-TARGET_DEVICES += minibox-v3.2
-
 define Device/oolite-v1
   $(Device/minibox-v1)
   DEVICE_TITLE := GainStrong Oolite V1.0
@@ -905,7 +912,7 @@ TARGET_DEVICES += oolite-v1
 define Device/oolite-v5.2
   $(Device/tplink-16mlzma)
   DEVICE_TITLE := GainStrong Oolite V5.2
-  DEVICE_PACKAGES := ath10k-firmware-qca9887-ct kmod-ath10k-ct kmod-usb-core kmod-usb2
+  DEVICE_PACKAGES := ath10k-firmware-qca9887 kmod-ath10k kmod-usb-core kmod-usb2
   BOARDNAME := OOLITE-V5-2
   DEVICE_PROFILE := OOLITEV52
   TPLINK_HWID := 0x3C00010B
@@ -1000,7 +1007,7 @@ TARGET_DEVICES += som9331
 
 define Device/sr3200
   DEVICE_TITLE := YunCore SR3200
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := SR3200
   IMAGE_SIZE := 16000k
   MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
@@ -1010,7 +1017,7 @@ TARGET_DEVICES += sr3200
 define Device/xd3200
   $(Device/sr3200)
   DEVICE_TITLE := YunCore XD3200
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := XD3200
 endef
 TARGET_DEVICES += xd3200
@@ -1063,11 +1070,11 @@ TARGET_DEVICES += n5q
 
 define Device/NBG6616
   DEVICE_TITLE := ZyXEL NBG6616
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-rtc-pcf8563 kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-rtc-pcf8563 kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := NBG6616
   KERNEL_SIZE := 2048k
   IMAGE_SIZE := 15323k
-  MTDPARTS := spi0.0:192k(u-boot)ro,64k(env),64k(RFdata)ro,384k(zyxel_rfsd),384k(romd),64k(header),2048k(kernel),13184k(rootfs),15232k@0x120000(firmware)
+  MTDPARTS := spi0.0:192k(u-boot)ro,64k(env)ro,64k(RFdata)ro,384k(zyxel_rfsd),384k(romd),64k(header),2048k(kernel),13184k(rootfs),15232k@0x120000(firmware)
   CMDLINE += mem=128M
   RAS_BOARD := NBG6616
   RAS_ROOTFS_SIZE := 14464k
@@ -1130,7 +1137,6 @@ define Device/seama
   KERNEL := kernel-bin | patch-cmdline | relocate-kernel | lzma
   KERNEL_INITRAMFS := kernel-bin | patch-cmdline | lzma | seama
   KERNEL_INITRAMFS_SUFFIX = $$(KERNEL_SUFFIX).seama
-  SEAMA_MTDBLOCK := 1
   IMAGES := sysupgrade.bin factory.bin
 
   # 64 bytes offset:
@@ -1142,14 +1148,15 @@ define Device/seama
 	check-size $$$$(IMAGE_SIZE)
   IMAGE/factory.bin := \
 	$$(IMAGE/default) | seama | pad-rootfs | \
-	seama-seal | check-size $$$$(IMAGE_SIZE)
+	seama-seal -m "signature=$$$$(SEAMA_SIGNATURE)" | \
+	check-size $$$$(IMAGE_SIZE)
   SEAMA_SIGNATURE :=
 endef
 
 define Device/dir-869-a1
   $(Device/seama)
   DEVICE_TITLE := D-Link DIR-869 rev. A1
-  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := DIR-869-A1
   IMAGE_SIZE := 15872k
   MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(devdata)ro,64k(devconf)ro,15872k(firmware),64k(radiocfg)ro
@@ -1186,7 +1193,7 @@ TARGET_DEVICES += mynet-n750
 define Device/qihoo-c301
   $(Device/seama)
   DEVICE_TITLE := Qihoo C301
-  DEVICE_PACKAGES :=  kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES :=  kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := QIHOO-C301
   IMAGE_SIZE := 15744k
   MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env),64k(devdata),64k(devconf),15744k(firmware),64k(warm_start),64k(action_image_config),64k(radiocfg)ro;spi0.1:15360k(upgrade2),1024k(privatedata)
@@ -1208,7 +1215,7 @@ TARGET_DEVICES += dap-1330-a1
 
 define Device/dap-2695-a1
   DEVICE_TITLE := D-Link DAP-2695 rev. A1
-  DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct
+  DEVICE_PACKAGES := ath10k-firmware-qca988x kmod-ath10k
   BOARDNAME := DAP-2695-A1
   IMAGES := factory.img sysupgrade.bin
   IMAGE_SIZE := 15360k
@@ -1249,7 +1256,7 @@ TARGET_DEVICES += wifi-pineapple-nano
 define Device/wlr8100
   DEVICE_TITLE := Sitecom WLR-8100
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-usb3 \
-	kmod-ath10k-ct ath10k-firmware-qca988x-ct
+	kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := WLR8100
   IMAGE_SIZE := 15424k
   MTDPARTS := spi0.0:192k(u-boot)ro,64k(u-boot-env)ro,15424k(firmware),256k(manufacture)ro,64k(backup)ro,320k(storage)ro,64k(art)ro

@@ -7,11 +7,16 @@
 #include "qca953x.dtsi"
 
 / {
+	chosen {
+		bootargs = "console=ttyS0,115200n8";
+	};
+
 	aliases {
 		led-boot = &led_link4;
 		led-failsafe = &led_link4;
 		led-running = &led_link4;
 		led-upgrade = &led_link4;
+		label-mac-device = &wmac;
 	};
 
 	leds: leds {
@@ -39,10 +44,9 @@
 	};
 
 	keys {
-		compatible = "gpio-keys-polled";
-		poll-interval = <100>;
+		compatible = "gpio-keys";
 
-		reset_button {
+		reset {
 			label = "Reset button";
 			linux,code = <KEY_RESTART>;
 			gpios = <&gpio 17 GPIO_ACTIVE_LOW>;

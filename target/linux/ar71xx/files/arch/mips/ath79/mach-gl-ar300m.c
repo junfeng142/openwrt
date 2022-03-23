@@ -29,6 +29,7 @@
 #include "machtypes.h"
 #include "pci.h"
 
+#define GL_AR300M_GPIO_LED_USB		2
 #define GL_AR300M_GPIO_LED_WLAN		14
 #define GL_AR300M_GPIO_LED_LAN		13
 #define GL_AR300M_GPIO_LED_SYSTEM	12
@@ -46,7 +47,13 @@
 
 static struct gpio_led gl_ar300m_leds_gpio[] __initdata = {
 	{
-		.name = "gl-ar300m:red:wlan",
+		.name = "gl-ar300m:green:usb",
+		.gpio = GL_AR300M_GPIO_LED_USB,
+		.active_low = 0,
+		.default_state = 1,
+	},
+	{
+		.name = "gl-ar300m:green:wlan",
 		.gpio = GL_AR300M_GPIO_LED_WLAN,
 		.active_low = 1,
 	},

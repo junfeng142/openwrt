@@ -22,20 +22,15 @@ add_insmod() {
 [ -e /etc/config/network ] && {
 	# only try to parse network config on openwrt
 
-	. /lib/functions/network.sh
-
-	find_ifname() {
-		local ifname
-		if network_get_device ifname "$1"; then
-			echo "$ifname"
-		else
-			echo "Device for interface $1 not found." >&2
-			exit 1
-		fi
-	}
+	find_ifname() {(
+		reset_cb
+		include /lib/network
+		scan_interfaces
+		config_get "$1" ifname
+	)}
 } || {
 	find_ifname() {
-		echo "Interface not found." >&2
+		echo "Interface not found."
 		exit 1
 	}
 }
@@ -223,7 +218,6 @@ qos_parse_config() {
 				config_get device "$1" device
 				[ -z "$device" ] && {
 					device="$(find_ifname $1)"
-					[ -z "$device" ] && exit 1
 					config_set "$1" device "$device"
 				}
 			}

@@ -1777,7 +1777,7 @@ static int ltq_atm_probe(struct platform_device *pdev)
 		goto INIT_PRIV_DATA_FAIL;
 	}
 
-	ops->init(pdev);
+	ops->init();
 	init_rx_tables();
 	init_tx_tables();
 

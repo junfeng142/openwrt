@@ -19,15 +19,9 @@ else
 endif
 
 ifeq ($(IS_TTY),1)
-  ifneq ($(strip $(NO_COLOR)),1)
-    define progress
+  define progress
 	printf "\033[M\r$(1)" >&2;
-    endef
-  else
-    define progress
-	printf "\r$(1)" >&2;
-    endef
-  endif
+  endef
 else
   define progress
 	:;

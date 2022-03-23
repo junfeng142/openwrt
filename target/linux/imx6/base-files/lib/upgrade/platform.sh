@@ -17,7 +17,7 @@ enable_image_metadata_check
 
 apalis_copy_config() {
 	apalis_mount_boot
-	cp -af "$UPGRADE_BACKUP" "/boot/$BACKUP_FILE"
+	cp -af "$CONF_TAR" /boot/
 	sync
 	umount /boot
 }
@@ -69,19 +69,6 @@ platform_copy_config() {
 	case "$board" in
 	apalis*)
 		apalis_copy_config
-		;;
-	esac
-}
-
-platform_pre_upgrade() {
-	local board=$(board_name)
-
-	case "$board" in
-	apalis*)
-		[ -z "$UPGRADE_BACKUP" ] && {
-			jffs2reset -y
-			umount /overlay
-		}
 		;;
 	esac
 }

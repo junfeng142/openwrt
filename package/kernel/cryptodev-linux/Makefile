@@ -27,6 +27,7 @@ include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/cryptodev
   SUBMENU:=Cryptographic API modules
+  DEFAULT:=m if ALL
   TITLE:=Driver for cryptographic acceleration
   URL:=http://cryptodev-linux.org/
   VERSION:=$(LINUX_VERSION)+$(PKG_VERSION)-$(BOARD)-$(PKG_RELEASE)

@@ -85,7 +85,7 @@ define Device/hiveap-330
   DEVICE_TITLE := Aerohive HiveAP-330
   DEVICE_PACKAGES := kmod-tpm-i2c-atmel
   BLOCKSIZE := 128k
-  KERNEL := kernel-bin | gzip | uImage gzip
+  KERNEL_NAME := zImage
   KERNEL_SIZE := 8m
   KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux-initramfs | uImage none
   SUPPORTED_DEVICES := aerohive,hiveap-330
@@ -97,16 +97,6 @@ define Device/hiveap-330
 	append-kernel | append-metadata
 endef
 TARGET_DEVICES += hiveap-330
-
-define Device/ws-ap3710i
-  DEVICE_TITLE := Enterasys WS-AP3710i
-  BLOCKSIZE := 128k
-  KERNEL = kernel-bin | lzma | fit lzma $(KDIR)/image-$$(DEVICE_DTS).dtb
-  SUPPORTED_DEVICES := enterasys,ws-ap3710i
-  IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
-endef
-TARGET_DEVICES += ws-ap3710i
 
 define Device/panda
   DEVICE_TITLE := OCEDO Panda

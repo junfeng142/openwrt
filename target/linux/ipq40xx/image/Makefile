@@ -51,14 +51,6 @@ define Device/DniImage
 endef
 DEVICE_VARS += NETGEAR_BOARD_ID NETGEAR_HW_ID
 
-define Build/SenaoFW
-	-$(STAGING_DIR_HOST)/bin/mksenaofw \
-		-n $(BOARD_NAME) -r $(VENDOR_ID) -p $(1) \
-		-c $(DATECODE) -w $(2) -x $(CW_VER) -t 0 \
-		-e $@ \
-		-o $@.new
-	@cp $@.new $@
-endef
 
 define Device/8dev_jalapeno
 	$(call Device/FitImage)
@@ -69,21 +61,6 @@ define Device/8dev_jalapeno
 	DEVICE_TITLE := 8devices Jalapeno
 endef
 TARGET_DEVICES += 8dev_jalapeno
-
-define Device/alfa-network_ap120c-ac
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_TITLE := ALFA Network AP120C-AC
-	DEVICE_DTS := qcom-ipq4018-ap120c-ac
-	DEVICE_PACKAGES := ipq-wifi-alfa-network_ap120c-ac kmod-usb-acm \
-		kmod-tpm-i2c-atmel uboot-envtools
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	IMAGE_SIZE := 65536k
-	IMAGES := nand-factory.bin nand-sysupgrade.bin
-	IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
-endef
-TARGET_DEVICES += alfa-network_ap120c-ac
 
 define Device/asus_map-ac2200
 	$(call Device/FitImageLzma)
@@ -100,7 +77,7 @@ define Device/asus_rt-ac58u
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	DTB_SIZE := 65536
-	DEVICE_TITLE := Asus RT-AC58U
+	DEVICE_TITLE := Asus RT-AC58U / RT-AC1300UHP
 	IMAGE_SIZE := 20439364
 	FILESYSTEMS := squashfs
 #	Someone - in their infinite wisdom - decided to put the firmware
@@ -109,11 +86,29 @@ define Device/asus_rt-ac58u
 #	to add a version... or we are very careful not to add '\0' into that
 #	string and call it a day.... Yeah, we do the latter!
 	UIMAGE_NAME:=$(shell echo -e '\03\01\01\01RT-AC58U')
+	KERNEL_INITRAMFS := $$(KERNEL) | uImage none
+	KERNEL_INITRAMFS_SUFFIX := -factory.trx
 	IMAGES := sysupgrade.bin
-	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers \
-		kmod-usb-ledtrig-usbport
+	DEVICE_PACKAGES := kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += asus_rt-ac58u
+
+define Device/asus_rt-acrh17
+	$(call Device/FitImageLzma)
+	DEVICE_DTS := qcom-ipq4019-rt-acrh17
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DTB_SIZE := 65536
+	DEVICE_TITLE := Asus RT-ACRH17
+	IMAGE_SIZE := 20439364
+	FILESYSTEMS := squashfs
+	UIMAGE_NAME:=$(shell echo -e '\03\01\01\01RT-AC82U')
+	KERNEL_INITRAMFS := $$(KERNEL) | uImage none
+	KERNEL_INITRAMFS_SUFFIX := -factory.trx
+	IMAGES := sysupgrade.bin
+	DEVICE_PACKAGES := ipq-wifi-rt-acrh17 ath10k-firmware-qca9984
+endef
+TARGET_DEVICES += asus_rt-acrh17
 
 define Device/avm_fritzbox-4040
 	$(call Device/FitImageLzma)
@@ -129,33 +124,6 @@ define Device/avm_fritzbox-4040
 	DEVICE_PACKAGES := fritz-tffs fritz-caldata
 endef
 TARGET_DEVICES += avm_fritzbox-4040
-
-define Device/avm_fritzbox-7530
-	$(call Device/FitImageLzma)
-	DEVICE_DTS := qcom-ipq4019-fritzbox-7530
-	DEVICE_TITLE := AVM Fritz!Box 7530
-	DEVICE_PACKAGES := fritz-caldata fritz-tffs-nand ipq-wifi-avm_fritzbox-7530
-	IMAGES := sysupgrade.bin
-endef
-TARGET_DEVICES += avm_fritzbox-7530
-
-define Device/avm_fritzrepeater-1200
-	$(call Device/FitImageLzma)
-	DEVICE_DTS := qcom-ipq4019-fritzrepeater-1200
-	DEVICE_TITLE := AVM FRITZ!Repeater 1200
-	DEVICE_PACKAGES := fritz-caldata fritz-tffs-nand ipq-wifi-avm_fritzrepeater-1200
-	IMAGES := sysupgrade.bin
-endef
-TARGET_DEVICES += avm_fritzrepeater-1200
-
-define Device/avm_fritzrepeater-3000
-	$(call Device/FitImageLzma)
-	DEVICE_DTS := qcom-ipq4019-fritzrepeater-3000
-	DEVICE_TITLE := AVM Fritz!Repeater 3000
-	DEVICE_PACKAGES := ath10k-firmware-qca9984-ct fritz-caldata fritz-tffs-nand ipq-wifi-avm_fritzrepeater-3000
-	IMAGES := sysupgrade.bin
-endef
-TARGET_DEVICES += avm_fritzrepeater-3000
 
 define Device/compex_wpj428
 	$(call Device/FitImage)
@@ -184,32 +152,6 @@ define Device/engenius_eap1300
 	DEVICE_PACKAGES := ipq-wifi-engenius_eap1300
 endef
 TARGET_DEVICES += engenius_eap1300
-
-define Device/engenius_ens620ext
-	$(call Device/FitImage)
-	DEVICE_DTS := qcom-ipq4018-ens620ext
-	DEVICE_DTS_CONFIG := config@4
-	BLOCKSIZE := 64k
-	PAGESIZE := 256
-	DEVICE_TITLE := EnGenius ENS620EXT
-	BOARD_NAME := ENS620EXT
-	VENDOR_ID := 0x0101
-	PRODUCT_ID := 0x79
-	PRODUCT_ID_NEW := 0xA4
-	DATECODE := 190507
-	FW_VER := 3.1.2
-	FW_VER_NEW := 3.5.6
-	CW_VER := 1.8.99
-	IMAGE_SIZE := 21823488
-	KERNEL_SIZE := 5120k
-	FILESYSTEMS := squashfs
-	IMAGES := sysupgrade.bin factory_30.bin factory_35.bin
-	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE) | append-metadata
-	IMAGE/factory_30.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE) | SenaoFW $$$$(PRODUCT_ID) $$$$(FW_VER)
-	IMAGE/factory_35.bin := qsdk-ipq-factory-nor | check-size $$$$(IMAGE_SIZE) | SenaoFW $$$$(PRODUCT_ID_NEW) $$$$(FW_VER_NEW)
-	DEVICE_PACKAGES := ipq-wifi-engenius_ens620ext
-endef
-TARGET_DEVICES += engenius_ens620ext
 
 define Device/glinet_gl-b1300
 	$(call Device/FitImage)
@@ -257,21 +199,6 @@ define Device/linksys_ea6350v3
 	DEVICE_PACKAGES := ipq-wifi-linksys_ea6350v3 uboot-envtools
 endef
 TARGET_DEVICES += linksys_ea6350v3
-
-define Device/linksys_ea8300
-	$(call Device/FitzImage)
-	DEVICE_TITLE := Linksys EA8300 (Dallas)
-	DEVICE_DTS := qcom-ipq4019-linksys_ea8300
-	KERNEL_SIZE := 3072k
-	IMAGE_SIZE := 87040k
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	UBINIZE_OPTS := -E 5    # EOD marks to "hide" factory sig at EOF
-	IMAGES := sysupgrade.bin factory.bin
-	IMAGE/factory.bin  := append-kernel | pad-to $$$${KERNEL_SIZE} | append-ubi | linksys-image type=EA8300
-	DEVICE_PACKAGES := uboot-envtools ath10k-firmware-qca9888-ct ipq-wifi-linksys_ea8300 kmod-usb-ledtrig-usbport
-endef
-TARGET_DEVICES += linksys_ea8300
 
 define Device/meraki_mr33
 	$(call Device/FitImage)
@@ -349,6 +276,35 @@ define Device/qcom_ap-dk01.1-c1
 endef
 TARGET_DEVICES += qcom_ap-dk01.1-c1
 
+define Device/p2w_r619ac
+	$(call Device/FitzImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := P&W
+	DEVICE_MODEL := R619AC
+	DEVICE_DTS := qcom-ipq4019-r619ac
+	DEVICE_DTS_CONFIG := config@10
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	IMAGES += nand-factory.bin
+	IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
+	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac
+endef
+TARGET_DEVICES += p2w_r619ac
+
+define Device/p2w_r619ac-128m
+	$(call Device/FitzImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := P&W
+	DEVICE_MODEL := R619AC
+	DEVICE_VARIANT := 128M
+	DEVICE_DTS := qcom-ipq4019-r619ac-128m
+	DEVICE_DTS_CONFIG := config@10
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac
+endef
+TARGET_DEVICES += p2w_r619ac-128m
+
 define Device/qcom_ap-dk04.1-c1
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -362,30 +318,18 @@ define Device/qcom_ap-dk04.1-c1
 endef
 TARGET_DEVICES += qcom_ap-dk04.1-c1
 
-define Device/qxwlan_e2600ac-c1
-	$(call Device/FitImage)
-	DEVICE_TITLE :=  Qxwlan E2600AC-C1 (nor flash)
-	BOARD_NAME := e2600ac-c1
-	DEVICE_DTS := qcom-ipq4019-qxwlan-e2600ac-c1
-	KERNEL_SIZE := 4096k
-	IMAGE_SIZE := 31232k
-	IMAGES := sysupgrade.bin
-	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
-	DEVICE_PACKAGES := ipq-wifi-qxwlan_e2600ac
+define Device/hugo_ac1200
+        $(call Device/FitImage)
+        DEVICE_TITLE :=  Hugo AC1200
+        BOARD_NAME := hugo_ac1200
+        DEVICE_DTS := qcom-ipq4019-hugo-ac1200
+        KERNEL_SIZE := 4096k
+        IMAGE_SIZE := 31232k
+        IMAGES := sysupgrade.bin
+        IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
+	DEVICE_PACKAGES := ipq-wifi-hugo_ac1200
 endef
-TARGET_DEVICES += qxwlan_e2600ac-c1
-
-define Device/qxwlan_e2600ac-c2
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_DTS := qcom-ipq4019-qxwlan-e2600ac-c2
-	KERNEL_INSTALL := 1
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	DEVICE_TITLE := Qxwlan E2600AC-C2 (nornand flash)
-	DEVICE_PACKAGES := ipq-wifi-qxwlan_e2600ac
-endef
-TARGET_DEVICES += qxwlan_e2600ac-c2
+TARGET_DEVICES += hugo_ac1200
 
 define Device/zyxel_nbg6617
 	$(call Device/FitImageLzma)
@@ -414,7 +358,6 @@ define Device/zyxel_wre6606
 	DEVICE_DTS := qcom-ipq4018-wre6606
 	IMAGES := sysupgrade.bin
 	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
-	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
 endef
 TARGET_DEVICES += zyxel_wre6606
 

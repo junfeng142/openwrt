@@ -11,30 +11,29 @@
 	compatible = "embeddedwireless,dorin", "qca,ar9331";
 
 	aliases {
-		led-boot = &status;
-		led-failsafe = &status;
-		led-running = &status;
-		led-upgrade = &status;
+		led-boot = &led_status;
+		led-failsafe = &led_status;
+		led-running = &led_status;
+		led-upgrade = &led_status;
 		serial0 = &uart;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		status: status {
+		led_status: status {
 			label = "dorin:green:status";
 			gpios = <&gpio 21 GPIO_ACTIVE_LOW>;
 		};
 	};
 
 	keys {
-		compatible = "gpio-keys-polled";
-		poll-interval = <100>;
+		compatible = "gpio-keys";
 
 		wps {
 			label = "wps";
 			linux,code = <KEY_WPS_BUTTON>;
-			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
 		};
 
 		reset {
@@ -49,6 +48,10 @@
 	status = "okay";
 };
 
+&gpio {
+	status = "okay";
+};
+
 &usb {
 	dr_mode = "host";
 	status = "okay";
@@ -59,8 +62,9 @@
 };
 
 &spi {
-	num-chipselects = <1>;
 	status = "okay";
+
+	num-chipselects = <1>;
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -112,6 +116,6 @@
 
 &wmac {
 	status = "okay";
+
 	mtd-cal-data = <&art 0x1000>;
-	mtd-mac-address = <&art 0x1002>;
 };

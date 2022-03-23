@@ -1,0 +1,622 @@
+--- a/target/linux/ramips/patches-4.14/0002-MIPS-pci-rt2880-set-pci-controller-of_node.patch	2022-03-22 08:54:48.590466967 +0800
++++ b/target/linux/ramips/patches-4.14/0002-MIPS-pci-rt2880-set-pci-controller-of_node.patch	2022-03-22 12:15:56.528412417 +0800
+@@ -21,7 +21,7 @@
+ 
+ --- a/arch/mips/pci/pci-rt2880.c
+ +++ b/arch/mips/pci/pci-rt2880.c
+-@@ -246,6 +246,8 @@ static int rt288x_pci_probe(struct platf
++@@ -233,6 +233,8 @@ static int rt288x_pci_probe(struct platf
+  	rt2880_pci_write_u32(PCI_BASE_ADDRESS_0, 0x08000000);
+  	(void) rt2880_pci_read_u32(PCI_BASE_ADDRESS_0);
+  
+--- a/target/linux/ramips/patches-4.14/0007-MIPS-ralink-copy-the-commandline-from-the-devicetree.patch	2022-03-22 08:54:48.593466972 +0800
++++ b/target/linux/ramips/patches-4.14/0007-MIPS-ralink-copy-the-commandline-from-the-devicetree.patch	2022-03-22 12:15:56.530412403 +0800
+@@ -10,7 +10,7 @@
+ 
+ --- a/arch/mips/ralink/of.c
+ +++ b/arch/mips/ralink/of.c
+-@@ -82,6 +82,8 @@ void __init plat_mem_setup(void)
++@@ -84,6 +84,8 @@ void __init plat_mem_setup(void)
+  
+  	__dt_setup_arch(dtb);
+  
+--- a/target/linux/ramips/patches-4.14/0013-owrt-hack-fix-mt7688-cache-issue.patch	2022-03-22 08:54:48.594466974 +0800
++++ b/target/linux/ramips/patches-4.14/0013-owrt-hack-fix-mt7688-cache-issue.patch	2022-03-22 12:15:56.531412396 +0800
+@@ -15,10 +15,10 @@
+  				BOOTMEM_DEFAULT);
+  #endif
+ -	device_tree_init();
+- 	sparse_init();
+- 	plat_swiotlb_setup();
+  
+-@@ -1026,6 +1025,7 @@ void __init setup_arch(char **cmdline_p)
++ 	/*
++ 	 * In order to reduce the possibility of kernel panic when failed to
++@@ -1036,6 +1035,7 @@ void __init setup_arch(char **cmdline_p)
+  
+  	cpu_cache_init();
+  	paging_init();
+--- a/target/linux/ramips/patches-4.14/0031-uvc-add-iPassion-iP2970-support.patch	2022-03-22 08:54:48.598466980 +0800
++++ b/target/linux/ramips/patches-4.14/0031-uvc-add-iPassion-iP2970-support.patch	2022-03-22 12:15:56.535412369 +0800
+@@ -13,7 +13,7 @@
+ 
+ --- a/drivers/media/usb/uvc/uvc_driver.c
+ +++ b/drivers/media/usb/uvc/uvc_driver.c
+-@@ -2737,6 +2737,18 @@ static const struct usb_device_id uvc_id
++@@ -2752,6 +2752,18 @@ static const struct usb_device_id uvc_id
+  	  .bInterfaceSubClass	= 1,
+  	  .bInterfaceProtocol	= 0,
+  	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
+@@ -64,7 +64,7 @@
+  
+  #include <media/v4l2-common.h>
+  
+-@@ -1101,9 +1106,149 @@ static void uvc_video_decode_data(struct
++@@ -1128,9 +1133,149 @@ static void uvc_video_decode_data(struct
+  	}
+  }
+  
+@@ -214,7 +214,7 @@
+  	/* Mark the buffer as done if the EOF marker is set. */
+  	if (data[1] & UVC_STREAM_EOF && buf->bytesused != 0) {
+  		uvc_trace(UVC_TRACE_FRAME, "Frame complete (EOF found).\n");
+-@@ -1518,6 +1663,8 @@ static int uvc_init_video_isoc(struct uv
++@@ -1545,6 +1690,8 @@ static int uvc_init_video_isoc(struct uv
+  	if (npackets == 0)
+  		return -ENOMEM;
+  
+--- a/target/linux/ramips/patches-4.14/0032-USB-dwc2-add-device_reset.patch	2022-03-22 08:54:48.598466980 +0800
++++ b/target/linux/ramips/patches-4.14/0032-USB-dwc2-add-device_reset.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,29 +0,0 @@
+-From a758e0870c6d1e4b0272f6e7f9efa9face5534bb Mon Sep 17 00:00:00 2001
+-From: John Crispin <blogic@openwrt.org>
+-Date: Sun, 27 Jul 2014 09:49:07 +0100
+-Subject: [PATCH 32/53] USB: dwc2: add device_reset()
+-
+-Signed-off-by: John Crispin <blogic@openwrt.org>
+----
+- drivers/usb/dwc2/hcd.c |    3 +++
+- 1 file changed, 3 insertions(+)
+-
+---- a/drivers/usb/dwc2/hcd.c
+-+++ b/drivers/usb/dwc2/hcd.c
+-@@ -48,6 +48,7 @@
+- #include <linux/io.h>
+- #include <linux/slab.h>
+- #include <linux/usb.h>
+-+#include <linux/reset.h>
+- 
+- #include <linux/usb/hcd.h>
+- #include <linux/usb/ch11.h>
+-@@ -5215,6 +5216,8 @@ int dwc2_hcd_init(struct dwc2_hsotg *hso
+- 
+- 	retval = -ENOMEM;
+- 
+-+	device_reset(hsotg->dev);
+-+
+- 	hcfg = dwc2_readl(hsotg->regs + HCFG);
+- 	dev_dbg(hsotg->dev, "hcfg=%08x\n", hcfg);
+- 
+--- a/target/linux/ramips/patches-4.14/0034-NET-multi-phy-support.patch	2022-03-22 08:54:48.598466980 +0800
++++ b/target/linux/ramips/patches-4.14/0034-NET-multi-phy-support.patch	2022-03-22 12:15:56.535412369 +0800
+@@ -11,7 +11,7 @@
+ 
+ --- a/drivers/net/phy/phy.c
+ +++ b/drivers/net/phy/phy.c
+-@@ -913,7 +913,10 @@ void phy_state_machine(struct work_struc
++@@ -914,7 +914,10 @@ void phy_state_machine(struct work_struc
+  		/* If the link is down, give up on negotiation for now */
+  		if (!phydev->link) {
+  			phydev->state = PHY_NOLINK;
+@@ -23,7 +23,7 @@
+  			break;
+  		}
+  
+-@@ -1000,7 +1003,10 @@ void phy_state_machine(struct work_struc
++@@ -1001,7 +1004,10 @@ void phy_state_machine(struct work_struc
+  			phy_link_up(phydev);
+  		} else {
+  			phydev->state = PHY_NOLINK;
+@@ -35,7 +35,7 @@
+  		}
+  
+  		if (phy_interrupt_is_valid(phydev))
+-@@ -1010,7 +1016,10 @@ void phy_state_machine(struct work_struc
++@@ -1011,7 +1017,10 @@ void phy_state_machine(struct work_struc
+  	case PHY_HALTED:
+  		if (phydev->link) {
+  			phydev->link = 0;
+@@ -49,8 +49,8 @@
+  		break;
+ --- a/include/linux/phy.h
+ +++ b/include/linux/phy.h
+-@@ -412,6 +412,7 @@ struct phy_device {
+- 	bool suspended;
++@@ -414,6 +414,7 @@ struct phy_device {
++ 	bool suspended_by_mdio_bus;
+  	bool sysfs_links;
+  	bool loopback_enabled;
+ +	bool no_auto_carrier_off;
+--- a/target/linux/ramips/patches-4.14/0037-mtd-cfi-cmdset-0002-force-word-write.patch	2022-03-22 08:54:48.598466980 +0800
++++ b/target/linux/ramips/patches-4.14/0037-mtd-cfi-cmdset-0002-force-word-write.patch	2022-03-22 12:15:56.535412369 +0800
+@@ -44,7 +44,7 @@
+  
+  /* Atmel chips don't use the same PRI format as AMD chips */
+  static void fixup_convert_atmel_pri(struct mtd_info *mtd)
+-@@ -1798,6 +1802,7 @@ static int cfi_amdstd_write_words(struct
++@@ -1797,6 +1801,7 @@ static int cfi_amdstd_write_words(struct
+  /*
+   * FIXME: interleaved mode not tested, and probably not supported!
+   */
+@@ -52,7 +52,7 @@
+  static int __xipram do_write_buffer(struct map_info *map, struct flchip *chip,
+  				    unsigned long adr, const u_char *buf,
+  				    int len)
+-@@ -1926,7 +1931,6 @@ static int __xipram do_write_buffer(stru
++@@ -1929,7 +1934,6 @@ static int __xipram do_write_buffer(stru
+  	return ret;
+  }
+  
+@@ -60,7 +60,7 @@
+  static int cfi_amdstd_write_buffers(struct mtd_info *mtd, loff_t to, size_t len,
+  				    size_t *retlen, const u_char *buf)
+  {
+-@@ -2001,6 +2005,7 @@ static int cfi_amdstd_write_buffers(stru
++@@ -2004,6 +2008,7 @@ static int cfi_amdstd_write_buffers(stru
+  
+  	return 0;
+  }
+--- a/target/linux/ramips/patches-4.14/0038-Revert-mtd-nand-Remove-unused-chip-write_page-hook.patch	2022-03-22 08:54:48.599466982 +0800
++++ b/target/linux/ramips/patches-4.14/0038-Revert-mtd-nand-Remove-unused-chip-write_page-hook.patch	2022-03-22 12:15:56.536412362 +0800
+@@ -47,7 +47,7 @@
+  	 * selected and we have 256 byte pagesize fallback to software ECC
+ --- a/include/linux/mtd/rawnand.h
+ +++ b/include/linux/mtd/rawnand.h
+-@@ -862,6 +862,7 @@ struct nand_manufacturer_ops {
++@@ -860,6 +860,7 @@ struct nand_manufacturer_ops {
+   *			structure which is shared among multiple independent
+   *			devices.
+   * @priv:		[OPTIONAL] pointer to private chip data
+@@ -55,7 +55,7 @@
+   * @manufacturer:	[INTERN] Contains manufacturer information
+   */
+  
+-@@ -885,6 +886,9 @@ struct nand_chip {
++@@ -883,6 +884,9 @@ struct nand_chip {
+  	int(*waitfunc)(struct mtd_info *mtd, struct nand_chip *this);
+  	int (*erase)(struct mtd_info *mtd, int page);
+  	int (*scan_bbt)(struct mtd_info *mtd);
+--- a/target/linux/ramips/patches-4.14/0039-mtd-add-mt7621-nand-support.patch	2022-03-22 08:54:48.604466990 +0800
++++ b/target/linux/ramips/patches-4.14/0039-mtd-add-mt7621-nand-support.patch	2022-03-22 12:15:56.541412328 +0800
+@@ -3590,7 +3590,7 @@
+ +
+ +out:
+ +	MSG(INIT, "[NFI] mtk_nand_probe fail, err = %d!\n", err);
+-+	nand_release(mtd);
+++	nand_release(nand_chip);
+ +	platform_set_drvdata(pdev, NULL);
+ +	kfree(host);
+ +	nand_disable_clock();
+@@ -3604,7 +3604,7 @@
+ +	struct mtd_info *mtd = host->mtd;
+ +	struct nand_chip *nand_chip = &host->nand_chip;
+ +
+-+	nand_release(mtd);
+++	nand_release(nand_chip);
+ +	kfree(host);
+ +	nand_disable_clock();
+ +
+@@ -4256,7 +4256,7 @@
+ +#endif /* __NAND_DEF_H__ */
+ --- /dev/null
+ +++ b/drivers/mtd/nand/nand_device_list.h
+-@@ -0,0 +1,60 @@
++@@ -0,0 +1,59 @@
+ +/* Copyright Statement:
+ + *
+ + * This software/firmware and related documentation ("MediaTek Software") are
+@@ -4308,7 +4308,6 @@
+ +	{0xC8DC, 0x909554, 5, 8, 512, 128, 2048, 64, 0x30C77fff, "F59L4G81A", 0},
+ +	{0xECD3, 0x519558, 5, 8, 1024, 128, 2048, 64, 0x44333, "K9K8G8000", 0},
+ +    {0xC2F1, 0x801DC2, 4, 8, 128, 128, 2048, 64, 0x30C77fff, "MX30LF1G08AA", 0},
+-+    {0xC2F1, 0x809502, 4, 8, 128, 128, 2048, 64, 0x30C77fff, "MX30LF1G18AC", 0},
+ +    {0x98D3, 0x902676, 5, 8, 1024, 256, 4096, 224, 0x00C25332, "TC58NVG3S0F", 0},
+ +    {0x01DA, 0x909546, 5, 8, 256, 128, 2048, 128, 0x30C77fff, "S34ML02G200TF", 0},
+ +    {0x01DC, 0x909556, 5, 8, 512, 128, 2048, 128, 0x30C77fff, "S34ML04G200TF", 0},
+--- a/target/linux/ramips/patches-4.14/0040-nand-hack.patch	2022-03-22 08:54:48.604466990 +0800
++++ b/target/linux/ramips/patches-4.14/0040-nand-hack.patch	2022-03-22 12:15:56.541412328 +0800
+@@ -20,7 +20,7 @@
+  					/* Invalidate page cache */
+ --- a/include/linux/mtd/rawnand.h
+ +++ b/include/linux/mtd/rawnand.h
+-@@ -897,6 +897,9 @@ struct nand_chip {
++@@ -895,6 +895,9 @@ struct nand_chip {
+  	int (*setup_data_interface)(struct mtd_info *mtd, int chipnr,
+  				    const struct nand_data_interface *conf);
+  
+--- a/target/linux/ramips/patches-4.14/0048-asoc-add-mt7620-support.patch	2022-03-22 08:54:48.610467000 +0800
++++ b/target/linux/ramips/patches-4.14/0048-asoc-add-mt7620-support.patch	2022-03-22 12:15:56.547412286 +0800
+@@ -18,24 +18,6 @@
+  create mode 100644 sound/soc/ralink/mt7620-i2s.c
+  create mode 100644 sound/soc/ralink/mt7620-wm8960.c
+ 
+---- a/arch/mips/ralink/of.c
+-+++ b/arch/mips/ralink/of.c
+-@@ -15,6 +15,7 @@
+- #include <linux/of_fdt.h>
+- #include <linux/kernel.h>
+- #include <linux/bootmem.h>
+-+#include <linux/module.h>
+- #include <linux/of_platform.h>
+- #include <linux/of_address.h>
+- 
+-@@ -26,6 +27,7 @@
+- #include "common.h"
+- 
+- __iomem void *rt_sysc_membase;
+-+EXPORT_SYMBOL(rt_sysc_membase);
+- __iomem void *rt_memc_membase;
+- 
+- __iomem void *plat_of_remap_node(const char *node)
+ --- a/sound/soc/Kconfig
+ +++ b/sound/soc/Kconfig
+ @@ -59,6 +59,7 @@ source "sound/soc/mxs/Kconfig"
+--- a/target/linux/ramips/patches-4.14/0053-mtd-spi-nor-add-w25q256-3b-mode-switch.patch	2022-03-22 08:54:48.611467002 +0800
++++ b/target/linux/ramips/patches-4.14/0053-mtd-spi-nor-add-w25q256-3b-mode-switch.patch	2022-03-22 12:15:56.549412272 +0800
+@@ -21,10 +21,10 @@
+ +					 * Like SPI_NOR_4B_OPCODES, but for read
+ +					 * op code only.
+ +					 */
+- };
+  
+- #define JEDEC_MFR(info)	((info)->id[0])
+-@@ -240,6 +244,15 @@ static inline u8 spi_nor_convert_3to4_er
++ 	int	(*quad_enable)(struct spi_nor *nor);
++ };
++@@ -242,6 +246,15 @@ static inline u8 spi_nor_convert_3to4_er
+  				      ARRAY_SIZE(spi_nor_3to4_erase));
+  }
+  
+@@ -40,7 +40,7 @@
+  static void spi_nor_set_4byte_opcodes(struct spi_nor *nor,
+  				      const struct flash_info *info)
+  {
+-@@ -467,6 +480,36 @@ static int spi_nor_erase_sector(struct s
++@@ -469,6 +482,36 @@ static int spi_nor_erase_sector(struct s
+  	return nor->write_reg(nor, nor->erase_opcode, buf, nor->addr_width);
+  }
+  
+@@ -77,7 +77,7 @@
+  /*
+   * Erase an address range on the nor chip.  The address range may extend
+   * one or more erase sectors.  Return an error is there is a problem erasing.
+-@@ -492,6 +535,10 @@ static int spi_nor_erase(struct mtd_info
++@@ -494,6 +537,10 @@ static int spi_nor_erase(struct mtd_info
+  	if (ret)
+  		return ret;
+  
+@@ -88,7 +88,7 @@
+  	/* whole-chip erase? */
+  	if (len == mtd->size && !(nor->flags & SNOR_F_NO_OP_CHIP_ERASE)) {
+  		unsigned long timeout;
+-@@ -542,6 +589,7 @@ static int spi_nor_erase(struct mtd_info
++@@ -544,6 +591,7 @@ static int spi_nor_erase(struct mtd_info
+  	write_disable(nor);
+  
+  erase_err:
+@@ -96,7 +96,7 @@
+  	spi_nor_unlock_and_unprep(nor, SPI_NOR_OPS_ERASE);
+  
+  	instr->state = ret ? MTD_ERASE_FAILED : MTD_ERASE_DONE;
+-@@ -834,7 +882,9 @@ static int spi_nor_lock(struct mtd_info
++@@ -836,7 +884,9 @@ static int spi_nor_lock(struct mtd_info
+  	if (ret)
+  		return ret;
+  
+@@ -106,7 +106,7 @@
+  
+  	spi_nor_unlock_and_unprep(nor, SPI_NOR_OPS_UNLOCK);
+  	return ret;
+-@@ -849,7 +899,9 @@ static int spi_nor_unlock(struct mtd_inf
++@@ -851,7 +901,9 @@ static int spi_nor_unlock(struct mtd_inf
+  	if (ret)
+  		return ret;
+  
+@@ -116,7 +116,7 @@
+  
+  	spi_nor_unlock_and_unprep(nor, SPI_NOR_OPS_LOCK);
+  	return ret;
+-@@ -1177,7 +1229,7 @@ static const struct flash_info spi_nor_i
++@@ -1192,7 +1244,7 @@ static const struct flash_info spi_nor_i
+  	{ "w25q80", INFO(0xef5014, 0, 64 * 1024,  16, SECT_4K) },
+  	{ "w25q80bl", INFO(0xef4014, 0, 64 * 1024,  16, SECT_4K) },
+  	{ "w25q128", INFO(0xef4018, 0, 64 * 1024, 256, SECT_4K) },
+@@ -125,7 +125,7 @@
+  	{ "w25m512jv", INFO(0xef7119, 0, 64 * 1024, 1024,
+  			SECT_4K | SPI_NOR_QUAD_READ | SPI_NOR_DUAL_READ) },
+  
+-@@ -1237,6 +1289,9 @@ static int spi_nor_read(struct mtd_info
++@@ -1252,6 +1304,9 @@ static int spi_nor_read(struct mtd_info
+  	if (ret)
+  		return ret;
+  
+@@ -135,7 +135,7 @@
+  	while (len) {
+  		loff_t addr = from;
+  
+-@@ -1261,6 +1316,18 @@ static int spi_nor_read(struct mtd_info
++@@ -1276,6 +1331,18 @@ static int spi_nor_read(struct mtd_info
+  	ret = 0;
+  
+  read_err:
+@@ -154,7 +154,7 @@
+  	spi_nor_unlock_and_unprep(nor, SPI_NOR_OPS_READ);
+  	return ret;
+  }
+-@@ -1362,6 +1429,10 @@ static int spi_nor_write(struct mtd_info
++@@ -1377,6 +1444,10 @@ static int spi_nor_write(struct mtd_info
+  	if (ret)
+  		return ret;
+  
+@@ -165,7 +165,7 @@
+  	for (i = 0; i < len; ) {
+  		ssize_t written;
+  		loff_t addr = to + i;
+-@@ -1402,6 +1473,7 @@ static int spi_nor_write(struct mtd_info
++@@ -1417,6 +1488,7 @@ static int spi_nor_write(struct mtd_info
+  	}
+  
+  write_err:
+@@ -173,7 +173,7 @@
+  	spi_nor_unlock_and_unprep(nor, SPI_NOR_OPS_WRITE);
+  	return ret;
+  }
+-@@ -2818,8 +2890,10 @@ int spi_nor_scan(struct spi_nor *nor, co
++@@ -2842,8 +2914,10 @@ int spi_nor_scan(struct spi_nor *nor, co
+  	} else if (mtd->size > 0x1000000) {
+  		/* enable 4-byte addressing if the device exceeds 16MiB */
+  		nor->addr_width = 4;
+--- a/target/linux/ramips/patches-4.14/0054-mtd-spi-nor-w25q256-respect-default-mode.patch	2022-03-22 08:54:48.612467004 +0800
++++ b/target/linux/ramips/patches-4.14/0054-mtd-spi-nor-w25q256-respect-default-mode.patch	2022-03-22 12:15:56.549412272 +0800
+@@ -1,6 +1,6 @@
+ --- a/drivers/mtd/spi-nor/spi-nor.c
+ +++ b/drivers/mtd/spi-nor/spi-nor.c
+-@@ -142,20 +142,29 @@ static int read_fsr(struct spi_nor *nor)
++@@ -144,20 +144,29 @@ static int read_fsr(struct spi_nor *nor)
+   * location. Return the configuration register value.
+   * Returns negative if error occurred.
+   */
+@@ -33,7 +33,7 @@
+  /*
+   * Write status register 1 byte
+   * Returns negative if error occurred.
+-@@ -2890,9 +2899,16 @@ int spi_nor_scan(struct spi_nor *nor, co
++@@ -2914,9 +2923,16 @@ int spi_nor_scan(struct spi_nor *nor, co
+  	} else if (mtd->size > 0x1000000) {
+  		/* enable 4-byte addressing if the device exceeds 16MiB */
+  		nor->addr_width = 4;
+--- a/target/linux/ramips/patches-4.14/0069-awake-rt305x-dwc2-controller.patch	2022-03-22 08:54:48.612467004 +0800
++++ b/target/linux/ramips/patches-4.14/0069-awake-rt305x-dwc2-controller.patch	2022-03-22 12:15:56.549412272 +0800
+@@ -1,6 +1,6 @@
+ --- a/drivers/usb/dwc2/platform.c
+ +++ b/drivers/usb/dwc2/platform.c
+-@@ -406,6 +406,12 @@ static int dwc2_driver_probe(struct plat
++@@ -407,6 +407,12 @@ static int dwc2_driver_probe(struct plat
+  	if (retval)
+  		return retval;
+  
+--- a/target/linux/ramips/patches-4.14/0200-linkit_bootstrap.patch	2022-03-22 08:54:48.613467005 +0800
++++ b/target/linux/ramips/patches-4.14/0200-linkit_bootstrap.patch	2022-03-22 12:15:56.550412266 +0800
+@@ -1,6 +1,6 @@
+ --- a/drivers/misc/Makefile
+ +++ b/drivers/misc/Makefile
+-@@ -56,6 +56,7 @@ obj-$(CONFIG_CXL_BASE)		+= cxl/
++@@ -57,6 +57,7 @@ obj-$(CONFIG_CXL_BASE)		+= cxl/
+  obj-$(CONFIG_ASPEED_LPC_CTRL)	+= aspeed-lpc-ctrl.o
+  obj-$(CONFIG_ASPEED_LPC_SNOOP)	+= aspeed-lpc-snoop.o
+  obj-$(CONFIG_PCI_ENDPOINT_TEST)	+= pci_endpoint_test.o
+--- a/target/linux/ramips/patches-4.14/302-spi-nor-add-gd25q512.patch	2022-03-22 08:54:48.616467010 +0800
++++ b/target/linux/ramips/patches-4.14/302-spi-nor-add-gd25q512.patch	2022-03-22 12:15:56.553412245 +0800
+@@ -1,8 +1,8 @@
+ --- a/drivers/mtd/spi-nor/spi-nor.c
+ +++ b/drivers/mtd/spi-nor/spi-nor.c
+-@@ -1061,6 +1061,11 @@ static const struct flash_info spi_nor_i
+- 			SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ |
+- 			SPI_NOR_HAS_LOCK | SPI_NOR_HAS_TB)
++@@ -1076,6 +1076,11 @@ static const struct flash_info spi_nor_i
++ 			SPI_NOR_4B_OPCODES | SPI_NOR_HAS_LOCK | SPI_NOR_HAS_TB)
++ 			.quad_enable = macronix_quad_enable,
+  	},
+ +	{
+ +		"gd25q512", INFO(0xc84020, 0, 64 * 1024, 1024,
+--- a/target/linux/ramips/patches-4.14/304-spi-nor-enable-4B-opcodes-for-mx25l25635f.patch	2022-03-22 08:54:48.616467010 +0800
++++ b/target/linux/ramips/patches-4.14/304-spi-nor-enable-4B-opcodes-for-mx25l25635f.patch	2022-03-22 12:15:56.553412245 +0800
+@@ -10,7 +10,7 @@
+ 
+ --- a/drivers/mtd/spi-nor/spi-nor.c
+ +++ b/drivers/mtd/spi-nor/spi-nor.c
+-@@ -1098,6 +1098,7 @@ static const struct flash_info spi_nor_i
++@@ -1113,6 +1113,7 @@ static const struct flash_info spi_nor_i
+  	{ "mx25l12805d", INFO(0xc22018, 0, 64 * 1024, 256, 0) },
+  	{ "mx25l12855e", INFO(0xc22618, 0, 64 * 1024, 256, 0) },
+  	{ "mx25l25635e", INFO(0xc22019, 0, 64 * 1024, 512, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
+@@ -18,7 +18,7 @@
+  	{ "mx25u25635f", INFO(0xc22539, 0, 64 * 1024, 512, SECT_4K | SPI_NOR_4B_OPCODES) },
+  	{ "mx25l25655e", INFO(0xc22619, 0, 64 * 1024, 512, 0) },
+  	{ "mx66l51235l", INFO(0xc2201a, 0, 64 * 1024, 1024, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ | SPI_NOR_4B_OPCODES) },
+-@@ -1267,11 +1268,12 @@ static const struct flash_info spi_nor_i
++@@ -1282,11 +1283,12 @@ static const struct flash_info spi_nor_i
+  	{ },
+  };
+  
+@@ -33,7 +33,7 @@
+  
+  	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
+  	if (tmp < 0) {
+-@@ -1282,10 +1284,16 @@ static const struct flash_info *spi_nor_
++@@ -1297,10 +1299,16 @@ static const struct flash_info *spi_nor_
+  	for (tmp = 0; tmp < ARRAY_SIZE(spi_nor_ids) - 1; tmp++) {
+  		info = &spi_nor_ids[tmp];
+  		if (info->id_len) {
+@@ -52,7 +52,7 @@
+  	dev_err(nor->dev, "unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
+  		id[0], id[1], id[2]);
+  	return ERR_PTR(-ENODEV);
+-@@ -2765,7 +2773,7 @@ int spi_nor_scan(struct spi_nor *nor, co
++@@ -2789,7 +2797,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+  		info = spi_nor_match_id(name);
+  	/* Try to auto-detect if chip name wasn't specified or not found */
+  	if (!info)
+@@ -61,7 +61,7 @@
+  	if (IS_ERR_OR_NULL(info))
+  		return -ENOENT;
+  
+-@@ -2776,7 +2784,7 @@ int spi_nor_scan(struct spi_nor *nor, co
++@@ -2800,7 +2808,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+  	if (name && info->id_len) {
+  		const struct flash_info *jinfo;
+  
+--- a/target/linux/ramips/patches-4.14/700-net-mdiobus-add-unlocked-accessors.patch	1970-01-01 08:00:00.000000000 +0800
++++ b/target/linux/ramips/patches-4.14/700-net-mdiobus-add-unlocked-accessors.patch	2022-03-22 12:15:56.553412245 +0800
+@@ -0,0 +1,141 @@
++From b2b8b06f18281c637da274b18e330bc52351637e Mon Sep 17 00:00:00 2001
++From: Russell King <rmk+kernel@armlinux.org.uk>
++Date: Tue, 2 Jan 2018 10:58:27 +0000
++Subject: [PATCH] net: mdiobus: add unlocked accessors
++
++commit 34dc08e4be208539b7c4aa8154a610e1736705e8 upstream.
++
++Add unlocked versions of the bus accessors, which allows access to the
++bus with all the tracing. These accessors validate that the bus mutex
++is held, which is a basic requirement for all mii bus accesses.
++
++Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
++Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
++Signed-off-by: David S. Miller <davem@davemloft.net>
++---
++ drivers/net/phy/mdio_bus.c | 65 +++++++++++++++++++++++++++++++-------
++ include/linux/mdio.h       |  3 ++
++ 2 files changed, 56 insertions(+), 12 deletions(-)
++
++--- a/drivers/net/phy/mdio_bus.c
+++++ b/drivers/net/phy/mdio_bus.c
++@@ -494,6 +494,55 @@ struct phy_device *mdiobus_scan(struct m
++ EXPORT_SYMBOL(mdiobus_scan);
++ 
++ /**
+++ * __mdiobus_read - Unlocked version of the mdiobus_read function
+++ * @bus: the mii_bus struct
+++ * @addr: the phy address
+++ * @regnum: register number to read
+++ *
+++ * Read a MDIO bus register. Caller must hold the mdio bus lock.
+++ *
+++ * NOTE: MUST NOT be called from interrupt context.
+++ */
+++int __mdiobus_read(struct mii_bus *bus, int addr, u32 regnum)
+++{
+++	int retval;
+++
+++	WARN_ON_ONCE(!mutex_is_locked(&bus->mdio_lock));
+++
+++	retval = bus->read(bus, addr, regnum);
+++
+++	trace_mdio_access(bus, 1, addr, regnum, retval, retval);
+++
+++	return retval;
+++}
+++EXPORT_SYMBOL(__mdiobus_read);
+++
+++/**
+++ * __mdiobus_write - Unlocked version of the mdiobus_write function
+++ * @bus: the mii_bus struct
+++ * @addr: the phy address
+++ * @regnum: register number to write
+++ * @val: value to write to @regnum
+++ *
+++ * Write a MDIO bus register. Caller must hold the mdio bus lock.
+++ *
+++ * NOTE: MUST NOT be called from interrupt context.
+++ */
+++int __mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val)
+++{
+++	int err;
+++
+++	WARN_ON_ONCE(!mutex_is_locked(&bus->mdio_lock));
+++
+++	err = bus->write(bus, addr, regnum, val);
+++
+++	trace_mdio_access(bus, 0, addr, regnum, val, err);
+++
+++	return err;
+++}
+++EXPORT_SYMBOL(__mdiobus_write);
+++
+++/**
++  * mdiobus_read_nested - Nested version of the mdiobus_read function
++  * @bus: the mii_bus struct
++  * @addr: the phy address
++@@ -513,11 +562,9 @@ int mdiobus_read_nested(struct mii_bus *
++ 	BUG_ON(in_interrupt());
++ 
++ 	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
++-	retval = bus->read(bus, addr, regnum);
+++	retval = __mdiobus_read(bus, addr, regnum);
++ 	mutex_unlock(&bus->mdio_lock);
++ 
++-	trace_mdio_access(bus, 1, addr, regnum, retval, retval);
++-
++ 	return retval;
++ }
++ EXPORT_SYMBOL(mdiobus_read_nested);
++@@ -539,11 +586,9 @@ int mdiobus_read(struct mii_bus *bus, in
++ 	BUG_ON(in_interrupt());
++ 
++ 	mutex_lock(&bus->mdio_lock);
++-	retval = bus->read(bus, addr, regnum);
+++	retval = __mdiobus_read(bus, addr, regnum);
++ 	mutex_unlock(&bus->mdio_lock);
++ 
++-	trace_mdio_access(bus, 1, addr, regnum, retval, retval);
++-
++ 	return retval;
++ }
++ EXPORT_SYMBOL(mdiobus_read);
++@@ -569,11 +614,9 @@ int mdiobus_write_nested(struct mii_bus
++ 	BUG_ON(in_interrupt());
++ 
++ 	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
++-	err = bus->write(bus, addr, regnum, val);
+++	err = __mdiobus_write(bus, addr, regnum, val);
++ 	mutex_unlock(&bus->mdio_lock);
++ 
++-	trace_mdio_access(bus, 0, addr, regnum, val, err);
++-
++ 	return err;
++ }
++ EXPORT_SYMBOL(mdiobus_write_nested);
++@@ -596,11 +639,9 @@ int mdiobus_write(struct mii_bus *bus, i
++ 	BUG_ON(in_interrupt());
++ 
++ 	mutex_lock(&bus->mdio_lock);
++-	err = bus->write(bus, addr, regnum, val);
+++	err = __mdiobus_write(bus, addr, regnum, val);
++ 	mutex_unlock(&bus->mdio_lock);
++ 
++-	trace_mdio_access(bus, 0, addr, regnum, val, err);
++-
++ 	return err;
++ }
++ EXPORT_SYMBOL(mdiobus_write);
++--- a/include/linux/mdio.h
+++++ b/include/linux/mdio.h
++@@ -257,6 +257,9 @@ static inline u16 ethtool_adv_to_mmd_eee
++ 	return reg;
++ }
++ 
+++int __mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);
+++int __mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);
+++
++ int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);
++ int mdiobus_read_nested(struct mii_bus *bus, int addr, u32 regnum);
++ int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);

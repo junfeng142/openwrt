@@ -26,7 +26,6 @@ include $(INCLUDE_DIR)/target.mk
 
 KERNELNAME:=Image dtbs
 
-DEFAULT_PACKAGES += uboot-envtools mkf2fs e2fsprogs \
-	kmod-usb-storage kmod-fs-msdos
+DEFAULT_PACKAGES += uboot-envtools mkf2fs e2fsprogs
 
 $(eval $(call BuildTarget))

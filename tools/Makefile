@@ -29,6 +29,7 @@ tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
 tools-y += mtools dosfstools libressl
 tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
 tools-$(CONFIG_TARGET_x86) += qemu
+tools-$(CONFIG_EFI_IMAGES) += gptfdisk popt
 tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
 tools-$(CONFIG_TARGET_ar71xx) += lzma-old
 tools-$(CONFIG_TARGET_ar71xx)$(CONFIG_TARGET_ath79) += squashfs
@@ -37,15 +38,14 @@ tools-y += lzma squashfskit4 zip
 tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL) += isl
 tools-$(CONFIG_USE_SPARSE) += sparse
-tools-$(CONFIG_TARGET_apm821xx)$(CONFIG_TARGET_gemini) += genext2fs
-tools-$(CONFIG_TARGET_tegra) += cbootimage cbootimage-configs
+tools-$(CONFIG_TARGET_apm821xx) += genext2fs
 
 # builddir dependencies
 $(curdir)/bison/compile := $(curdir)/flex/compile
 $(curdir)/flex/compile := $(curdir)/libtool/compile
 $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/compile
-$(curdir)/squashfskit4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
+$(curdir)/squashfs4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
 $(curdir)/automake/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/pkg-config/compile $(curdir)/xz/compile
@@ -77,10 +77,9 @@ $(curdir)/zlib/compile := $(curdir)/cmake/compile
 $(curdir)/wrt350nv2-builder/compile := $(curdir)/zlib/compile
 $(curdir)/lzma-old/compile := $(curdir)/zlib/compile
 $(curdir)/make-ext4fs/compile := $(curdir)/zlib/compile
-$(curdir)/cbootimage/compile += $(curdir)/automake/compile
+$(curdir)/gptfdisk/compile += $(curdir)/e2fsprogs/compile $(curdir)/popt/compile
 
 ifneq ($(HOST_OS),Linux)
-  $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
   tools-y += coreutils
 endif
 
@@ -102,10 +101,9 @@ $(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(patsubst %,$(c
 tools-y += $(tools-core)
 
 # make core tools depend on sed and flock
-$(foreach tool, $(filter-out xz,$(tools-core)), $(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile))
-$(curdir)/xz/compile += $(curdir)/flock/compile
+$(foreach tool, $(tools-core), $(eval $(curdir)/$(tool)/compile += $(curdir)/sed/compile))
 
-$(curdir)/sed/compile := $(curdir)/flock/compile $(curdir)/xz/compile
+$(curdir)/sed/compile := $(curdir)/flock/compile
 tools-y += flock sed
 
 $(curdir)/autoremove := 1
@@ -123,7 +121,7 @@ define PrepareStaging
 		$(if $(QUIET),,set -x;) \
 		mkdir -p "$$dir"; \
 		cd "$$dir"; \
-		mkdir -p bin lib include stamp usr/include usr/lib; \
+		mkdir -p bin lib include stamp; \
 	); done
 endef
 

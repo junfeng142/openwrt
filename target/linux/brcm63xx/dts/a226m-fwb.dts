@@ -101,19 +101,19 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		partition@0 {
+		cfe@0 {
 			label = "CFE";
 			reg = <0x000000 0x020000>;
 			read-only;
 		};
 
-		partition@20000 {
+		linux@10000 {
 			label = "linux";
-			reg = <0x020000 0xfc0000>;
+			reg = <0x010000 0xfc0000>;
 			compatible = "brcm,bcm963xx-imagetag";
 		};
 
-		partition@fe0000 {
+		nvram@7f0000 {
 			label = "nvram";
 			reg = <0xfe0000 0x020000>;
 		};

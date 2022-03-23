@@ -93,7 +93,6 @@ $hash_cmd or ($file_hash eq "skip") or die "Cannot find appropriate hash command
 sub download
 {
 	my $mirror = shift;
-	my $download_filename = shift;
 
 	$mirror =~ s!/$!!;
 
@@ -140,7 +139,7 @@ sub download
 			}
 		};
 	} else {
-		my @cmd = download_cmd("$mirror/$download_filename");
+		my @cmd = download_cmd("$mirror/$url_filename");
 		print STDERR "+ ".join(" ",@cmd)."\n";
 		open(FETCH_FD, '-|', @cmd) or die "Cannot launch curl or wget.\n";
 		$hash_cmd and do {
@@ -198,16 +197,19 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "https://mirror.netcologne.de/apache.org/$1";
 		push @mirrors, "https://mirror.aarnet.edu.au/pub/apache/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/apache/$1";
-		push @mirrors, "https://archive.apache.org/dist/$1";
 		push @mirrors, "http://mirror.cogentco.com/pub/apache/$1";
 		push @mirrors, "http://mirror.navercorp.com/apache/$1";
 		push @mirrors, "http://ftp.jaist.ac.jp/pub/apache/$1";
 		push @mirrors, "ftp://apache.cs.utah.edu/apache.org/$1";
 		push @mirrors, "ftp://apache.mirrors.ovh.net/ftp.apache.org/dist/$1";
 	} elsif ($mirror =~ /^\@GITHUB\/(.+)$/) {
+		my $dir = $1;
+		my $i = 0;
+		# replace the 2nd '/' with '@' for jsDelivr mirror
+		push @mirrors, "https://cdn.jsdelivr.net/gh/". $dir =~ s{\/}{++$i == 2 ? '@' : $&}ger;
 		# give github a few more tries (different mirrors)
 		for (1 .. 5) {
-			push @mirrors, "https://raw.githubusercontent.com/$1";
+			push @mirrors, "https://raw.githubusercontent.com/$dir";
 		}
 	} elsif ($mirror =~ /^\@GNU\/(.+)$/) {
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gnu/$1";
@@ -235,6 +237,7 @@ foreach my $mirror (@ARGV) {
 			push @extra, "$extra[0]/longterm/v$1";
 		}		
 		foreach my $dir (@extra) {
+			push @mirrors, "http://mirrors.ustc.edu.cn/kernel.org/$dir";
 			push @mirrors, "https://cdn.kernel.org/pub/$dir";
 			push @mirrors, "https://mirror.rackspace.com/kernel.org/$dir";
 			push @mirrors, "http://download.xs4all.nl/ftp.kernel.org/pub/$dir";
@@ -260,35 +263,15 @@ foreach my $mirror (@ARGV) {
 }
 
 #push @mirrors, 'https://mirror1.openwrt.org';
-push @mirrors, 'https://sources.openwrt.org';
+push @mirrors, 'https://sources.lede-project.org';
 push @mirrors, 'https://mirror2.openwrt.org/sources';
-
-if (-f "$target/$filename") {
-	$hash_cmd and do {
-		if (system("cat '$target/$filename' | $hash_cmd > '$target/$filename.hash'")) {
-			die "Failed to generate hash for $filename\n";
-		}
-
-		my $sum = `cat "$target/$filename.hash"`;
-		$sum =~ /^(\w+)\s*/ or die "Could not generate file hash\n";
-		$sum = $1;
-
-		cleanup();
-		exit 0 if $sum eq $file_hash;
-
-		die "Hash of the local file $filename does not match (file: $sum, requested: $file_hash) - deleting download.\n";
-		unlink "$target/$filename";
-	};
-}
+push @mirrors, 'https://downloads.openwrt.org/sources';
 
 while (!-f "$target/$filename") {
 	my $mirror = shift @mirrors;
 	$mirror or die "No more mirrors to try - giving up.\n";
 
-	download($mirror, $url_filename);
-	if (!-f "$target/$filename" && $url_filename ne $filename) {
-		download($mirror, $filename);
-	}
+	download($mirror);
 }
 
 $SIG{INT} = \&cleanup;

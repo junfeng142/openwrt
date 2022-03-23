@@ -10,17 +10,21 @@
 	model = "ROSINSON WR818";
 	compatible = "rosinson,wr818", "qca,qca9563";
 
-	aliases {
-		led-boot = &system;
-		led-failsafe = &system;
-		led-running = &system;
-		led-upgrade = &system;
+	chosen {
+		bootargs = "console=ttyS0,115200n8";
 	};
 
-	gpio_leds: leds {
+	aliases {
+		led-boot = &led_system;
+		led-failsafe = &led_system;
+		led-running = &led_system;
+		led-upgrade = &led_system;
+	};
+
+	leds {
 		compatible = "gpio-leds";
 
-		system: system {
+		led_system: system {
 			label = "wr818:red:system";
 			gpios = <&gpio 1 GPIO_ACTIVE_LOW>;
 		};
@@ -53,9 +57,9 @@
 };
 
 &spi {
-	num-cs = <1>;
-
 	status = "okay";
+
+	num-cs = <1>;
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -125,6 +129,7 @@
 
 &wmac {
 	status = "okay";
+
 	mtd-cal-data = <&art 0x1000>;
 };
 

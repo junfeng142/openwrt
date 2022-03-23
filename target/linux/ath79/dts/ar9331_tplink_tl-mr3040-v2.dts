@@ -11,13 +11,14 @@
 	compatible = "tplink,tl-mr3040-v2", "qca,ar9331";
 
 	aliases {
-		serial0 = &uart;
 		led-boot = &led_lan;
 		led-failsafe = &led_lan;
+		label-mac-device = &eth0;
 	};
 
 	leds {
 		compatible = "gpio-leds";
+
 		pinctrl-names = "default";
 		pinctrl-0 = <&switch_led_disable_pins>;
 
@@ -41,8 +42,7 @@
 	};
 
 	keys {
-		compatible = "gpio-keys-polled";
-		poll-interval = <20>;
+		compatible = "gpio-keys";
 
 		reset {
 			label = "reset";
@@ -86,6 +86,10 @@
 	status = "okay";
 };
 
+&gpio {
+	status = "okay";
+};
+
 &usb {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -104,8 +108,9 @@
 };
 
 &spi {
-	num-chipselects = <1>;
 	status = "okay";
+
+	num-chipselects = <1>;
 
 	flash@0 {
 		compatible = "jedec,spi-nor";
@@ -152,11 +157,13 @@
 
 &eth1 {
 	status = "okay";
+
 	compatible = "syscon", "simple-mfd";
 };
 
 &wmac {
 	status = "okay";
+
 	mtd-cal-data = <&art 0x1000>;
 	mtd-mac-address = <&uboot 0x1fc00>;
 };

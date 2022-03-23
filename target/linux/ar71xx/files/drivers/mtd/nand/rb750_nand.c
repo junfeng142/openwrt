@@ -393,7 +393,7 @@ static int rb750_nand_probe(struct platform_device *pdev)
 	return 0;
 
 err_release_nand:
-	nand_release(&info->chip);
+	nand_release(mtd);
 err_set_drvdata:
 	platform_set_drvdata(pdev, NULL);
 err_free_info:
@@ -405,7 +405,7 @@ static int rb750_nand_remove(struct platform_device *pdev)
 {
 	struct rb750_nand_info *info = platform_get_drvdata(pdev);
 
-	nand_release(&info->chip);
+	nand_release(rbinfo_to_mtd(info));
 	platform_set_drvdata(pdev, NULL);
 	kfree(info);
 

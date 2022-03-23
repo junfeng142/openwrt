@@ -7,6 +7,10 @@
 #include "ar9344.dtsi"
 
 / {
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
 	keys {
 		compatible = "gpio-keys";
 
@@ -144,4 +148,3 @@
 	status = "okay";
 	qca,no-eeprom;
 };
-

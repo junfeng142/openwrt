@@ -607,9 +607,9 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
 +};
 +
  &enet0 {
- 	tbi-handle = <&tbi0>;
+ 	tbi-handle = <&tbi1>;
  	phy-handle = <&sgmii_phy2>;
-@@ -235,6 +250,10 @@
+@@ -228,6 +243,10 @@
  	};
  };
  
@@ -620,7 +620,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  &sai1 {
  	status = "okay";
  };
-@@ -250,3 +269,11 @@
+@@ -243,3 +262,11 @@
  &uart1 {
  	status = "okay";
  };
@@ -740,7 +740,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		dcu: dcu@2ce0000 {
  			compatible = "fsl,ls1021a-dcu";
  			reg = <0x0 0x2ce0000 0x0 0x10000>;
-@@ -693,6 +743,11 @@
+@@ -684,6 +734,11 @@
  			dr_mode = "host";
  			snps,quirk-frame-length-adjustment = <0x20>;
  			snps,dis_rxdet_inp3_quirk;
@@ -752,7 +752,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		pcie@3400000 {
-@@ -700,7 +755,9 @@
+@@ -691,7 +746,9 @@
  			reg = <0x00 0x03400000 0x0 0x00010000   /* controller registers */
  			       0x40 0x00000000 0x0 0x00002000>; /* configuration space */
  			reg-names = "regs", "config";
@@ -763,7 +763,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			fsl,pcie-scfg = <&scfg 0>;
  			#address-cells = <3>;
  			#size-cells = <2>;
-@@ -716,6 +773,7 @@
+@@ -707,6 +764,7 @@
  					<0000 0 0 2 &gic GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>,
  					<0000 0 0 3 &gic GIC_SPI 190 IRQ_TYPE_LEVEL_HIGH>,
  					<0000 0 0 4 &gic GIC_SPI 192 IRQ_TYPE_LEVEL_HIGH>;
@@ -771,7 +771,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		pcie@3500000 {
-@@ -723,7 +781,9 @@
+@@ -714,7 +772,9 @@
  			reg = <0x00 0x03500000 0x0 0x00010000   /* controller registers */
  			       0x48 0x00000000 0x0 0x00002000>; /* configuration space */
  			reg-names = "regs", "config";
@@ -782,7 +782,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			fsl,pcie-scfg = <&scfg 1>;
  			#address-cells = <3>;
  			#size-cells = <2>;
-@@ -739,6 +799,47 @@
+@@ -730,6 +790,47 @@
  					<0000 0 0 2 &gic GIC_SPI 189 IRQ_TYPE_LEVEL_HIGH>,
  					<0000 0 0 3 &gic GIC_SPI 191 IRQ_TYPE_LEVEL_HIGH>,
  					<0000 0 0 4 &gic GIC_SPI 193 IRQ_TYPE_LEVEL_HIGH>;
@@ -1679,7 +1679,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  	};
  
-@@ -248,7 +230,7 @@
+@@ -247,7 +229,7 @@
  		dcfg: dcfg@1ee0000 {
  			compatible = "fsl,ls1012a-dcfg",
  				     "syscon";
@@ -1688,7 +1688,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			big-endian;
  		};
  
-@@ -305,44 +287,25 @@
+@@ -304,44 +286,25 @@
  			#thermal-sensor-cells = <1>;
  		};
  
@@ -1744,7 +1744,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			status = "disabled";
  		};
  
-@@ -352,7 +315,20 @@
+@@ -351,7 +314,20 @@
  			#size-cells = <0>;
  			reg = <0x0 0x2190000 0x0 0x10000>;
  			interrupts = <0 57 IRQ_TYPE_LEVEL_HIGH>;
@@ -1765,7 +1765,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			status = "disabled";
  		};
  
-@@ -401,6 +377,20 @@
+@@ -400,6 +376,20 @@
  			big-endian;
  		};
  
@@ -1786,7 +1786,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		sai1: sai@2b50000 {
  			#sound-dai-cells = <0>;
  			compatible = "fsl,vf610-sai";
-@@ -452,6 +442,8 @@
+@@ -451,6 +441,8 @@
  			dr_mode = "host";
  			snps,quirk-frame-length-adjustment = <0x20>;
  			snps,dis_rxdet_inp3_quirk;
@@ -1795,7 +1795,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		sata: sata@3200000 {
-@@ -472,5 +464,85 @@
+@@ -471,5 +463,85 @@
  			dr_mode = "host";
  			phy_type = "ulpi";
  		};
@@ -3100,7 +3100,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		scfg: scfg@1570000 {
  			compatible = "fsl,ls1043a-scfg", "syscon";
  			reg = <0x0 0x1570000 0x0 0x10000>;
-@@ -256,7 +286,7 @@
+@@ -255,7 +285,7 @@
  
  		dcfg: dcfg@1ee0000 {
  			compatible = "fsl,ls1043a-dcfg", "syscon";
@@ -3109,7 +3109,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			big-endian;
  		};
  
-@@ -343,36 +373,7 @@
+@@ -342,36 +372,7 @@
  			#thermal-sensor-cells = <1>;
  		};
  
@@ -3147,7 +3147,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  
  		qman: qman@1880000 {
  			compatible = "fsl,qman";
-@@ -423,7 +424,7 @@
+@@ -422,7 +423,7 @@
  		};
  
  		i2c0: i2c@2180000 {
@@ -3156,7 +3156,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			#address-cells = <1>;
  			#size-cells = <0>;
  			reg = <0x0 0x2180000 0x0 0x10000>;
-@@ -433,6 +434,7 @@
+@@ -432,6 +433,7 @@
  			dmas = <&edma0 1 39>,
  			       <&edma0 1 38>;
  			dma-names = "tx", "rx";
@@ -3164,7 +3164,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			status = "disabled";
  		};
  
-@@ -537,6 +539,72 @@
+@@ -536,6 +538,72 @@
  			#interrupt-cells = <2>;
  		};
  
@@ -3237,7 +3237,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		lpuart0: serial@2950000 {
  			compatible = "fsl,ls1021a-lpuart";
  			reg = <0x0 0x2950000 0x0 0x1000>;
-@@ -591,6 +659,16 @@
+@@ -590,6 +658,16 @@
  			status = "disabled";
  		};
  
@@ -3254,7 +3254,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		wdog0: wdog@2ad0000 {
  			compatible = "fsl,ls1043a-wdt", "fsl,imx21-wdt";
  			reg = <0x0 0x2ad0000 0x0 0x10000>;
-@@ -616,41 +694,81 @@
+@@ -615,41 +693,81 @@
  				 <&clockgen 4 0>;
  		};
  
@@ -3371,7 +3371,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		msi1: msi-controller1@1571000 {
-@@ -679,13 +797,13 @@
+@@ -678,13 +796,13 @@
  			reg = <0x00 0x03400000 0x0 0x00100000   /* controller registers */
  			       0x40 0x00000000 0x0 0x00002000>; /* configuration space */
  			reg-names = "regs", "config";
@@ -3389,7 +3389,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			num-lanes = <4>;
  			bus-range = <0x0 0xff>;
  			ranges = <0x81000000 0x0 0x00000000 0x40 0x00010000 0x0 0x00010000   /* downstream I/O */
-@@ -697,6 +815,7 @@
+@@ -696,6 +814,7 @@
  					<0000 0 0 2 &gic 0 111 0x4>,
  					<0000 0 0 3 &gic 0 112 0x4>,
  					<0000 0 0 4 &gic 0 113 0x4>;
@@ -3397,7 +3397,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		pcie@3500000 {
-@@ -704,13 +823,13 @@
+@@ -703,13 +822,13 @@
  			reg = <0x00 0x03500000 0x0 0x00100000   /* controller registers */
  			       0x48 0x00000000 0x0 0x00002000>; /* configuration space */
  			reg-names = "regs", "config";
@@ -3415,7 +3415,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			num-lanes = <2>;
  			bus-range = <0x0 0xff>;
  			ranges = <0x81000000 0x0 0x00000000 0x48 0x00010000 0x0 0x00010000   /* downstream I/O */
-@@ -722,6 +841,7 @@
+@@ -721,6 +840,7 @@
  					<0000 0 0 2 &gic 0 121 0x4>,
  					<0000 0 0 3 &gic 0 122 0x4>,
  					<0000 0 0 4 &gic 0 123 0x4>;
@@ -3423,7 +3423,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		pcie@3600000 {
-@@ -729,13 +849,13 @@
+@@ -728,13 +848,13 @@
  			reg = <0x00 0x03600000 0x0 0x00100000   /* controller registers */
  			       0x50 0x00000000 0x0 0x00002000>; /* configuration space */
  			reg-names = "regs", "config";
@@ -3441,7 +3441,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			num-lanes = <2>;
  			bus-range = <0x0 0xff>;
  			ranges = <0x81000000 0x0 0x00000000 0x50 0x00010000 0x0 0x00010000   /* downstream I/O */
-@@ -747,6 +867,14 @@
+@@ -746,6 +866,14 @@
  					<0000 0 0 2 &gic 0 155 0x4>,
  					<0000 0 0 3 &gic 0 156 0x4>,
  					<0000 0 0 4 &gic 0 157 0x4>;
@@ -3456,7 +3456,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  	};
  
-@@ -754,3 +882,29 @@
+@@ -753,3 +881,29 @@
  
  #include "qoriq-qman-portals.dtsi"
  #include "qoriq-bman-portals.dtsi"
@@ -4662,7 +4662,16 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		scfg: scfg@1570000 {
  			compatible = "fsl,ls1046a-scfg", "syscon";
  			reg = <0x0 0x1570000 0x0 0x10000>;
-@@ -363,36 +370,7 @@
+@@ -304,7 +311,7 @@
+ 
+ 		dcfg: dcfg@1ee0000 {
+ 			compatible = "fsl,ls1046a-dcfg", "syscon";
+-			reg = <0x0 0x1ee0000 0x0 0x10000>;
++			reg = <0x0 0x1ee0000 0x0 0x1000>;
+ 			big-endian;
+ 		};
+ 
+@@ -362,36 +369,7 @@
  			#thermal-sensor-cells = <1>;
  		};
  
@@ -4700,7 +4709,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  
  		dspi: dspi@2100000 {
  			compatible = "fsl,ls1021a-v1.0-dspi";
-@@ -408,7 +386,7 @@
+@@ -407,7 +385,7 @@
  		};
  
  		i2c0: i2c@2180000 {
@@ -4709,7 +4718,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			#address-cells = <1>;
  			#size-cells = <0>;
  			reg = <0x0 0x2180000 0x0 0x10000>;
-@@ -417,6 +395,7 @@
+@@ -416,6 +394,7 @@
  			dmas = <&edma0 1 39>,
  			       <&edma0 1 38>;
  			dma-names = "tx", "rx";
@@ -4717,7 +4726,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			status = "disabled";
  		};
  
-@@ -441,12 +420,13 @@
+@@ -440,12 +419,13 @@
  		};
  
  		i2c3: i2c@21b0000 {
@@ -4732,7 +4741,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			status = "disabled";
  		};
  
-@@ -572,6 +552,15 @@
+@@ -571,6 +551,15 @@
  			status = "disabled";
  		};
  
@@ -4748,7 +4757,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		wdog0: watchdog@2ad0000 {
  			compatible = "fsl,imx21-wdt";
  			reg = <0x0 0x2ad0000 0x0 0x10000>;
-@@ -596,40 +585,81 @@
+@@ -595,40 +584,81 @@
  				 <&clockgen 4 1>;
  		};
  
@@ -4864,7 +4873,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		msi1: msi-controller@1580000 {
-@@ -662,6 +692,125 @@
+@@ -661,6 +691,125 @@
  				     <GIC_SPI 157 IRQ_TYPE_LEVEL_HIGH>;
  		};
  
@@ -4990,7 +4999,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  	};
  
  	reserved-memory {
-@@ -690,7 +839,36 @@
+@@ -689,7 +838,36 @@
  			no-map;
  		};
  	};
@@ -7318,7 +7327,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		dspi: dspi@2100000 {
-@@ -573,15 +493,126 @@
+@@ -574,15 +494,126 @@
  			#interrupt-cells = <2>;
  		};
  
@@ -7447,7 +7456,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		i2c1: i2c@2010000 {
-@@ -592,7 +623,7 @@
+@@ -593,7 +624,7 @@
  			reg = <0x0 0x2010000 0x0 0x10000>;
  			interrupts = <0 34 0x4>; /* Level high type */
  			clock-names = "i2c";
@@ -7456,7 +7465,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		i2c2: i2c@2020000 {
-@@ -603,7 +634,7 @@
+@@ -604,7 +635,7 @@
  			reg = <0x0 0x2020000 0x0 0x10000>;
  			interrupts = <0 35 0x4>; /* Level high type */
  			clock-names = "i2c";
@@ -7465,7 +7474,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		i2c3: i2c@2030000 {
-@@ -614,7 +645,7 @@
+@@ -615,7 +646,7 @@
  			reg = <0x0 0x2030000 0x0 0x10000>;
  			interrupts = <0 35 0x4>; /* Level high type */
  			clock-names = "i2c";
@@ -7474,7 +7483,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		ifc: ifc@2240000 {
-@@ -647,8 +678,8 @@
+@@ -648,8 +679,8 @@
  			compatible = "fsl,ls2080a-pcie", "fsl,ls2085a-pcie",
  				     "snps,dw-pcie";
  			reg-names = "regs", "config";
@@ -7485,7 +7494,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			#address-cells = <3>;
  			#size-cells = <2>;
  			device_type = "pci";
-@@ -656,20 +687,22 @@
+@@ -657,20 +688,22 @@
  			num-lanes = <4>;
  			bus-range = <0x0 0xff>;
  			msi-parent = <&its>;
@@ -7510,7 +7519,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			#address-cells = <3>;
  			#size-cells = <2>;
  			device_type = "pci";
-@@ -677,20 +710,22 @@
+@@ -678,20 +711,22 @@
  			num-lanes = <4>;
  			bus-range = <0x0 0xff>;
  			msi-parent = <&its>;
@@ -7535,7 +7544,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			#address-cells = <3>;
  			#size-cells = <2>;
  			device_type = "pci";
-@@ -698,20 +733,22 @@
+@@ -699,20 +734,22 @@
  			num-lanes = <8>;
  			bus-range = <0x0 0xff>;
  			msi-parent = <&its>;
@@ -7560,7 +7569,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  			#address-cells = <3>;
  			#size-cells = <2>;
  			device_type = "pci";
-@@ -719,12 +756,14 @@
+@@ -720,12 +757,14 @@
  			num-lanes = <4>;
  			bus-range = <0x0 0xff>;
  			msi-parent = <&its>;
@@ -7575,7 +7584,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		sata0: sata@3200000 {
-@@ -753,6 +792,8 @@
+@@ -754,6 +793,8 @@
  			dr_mode = "host";
  			snps,quirk-frame-length-adjustment = <0x20>;
  			snps,dis_rxdet_inp3_quirk;
@@ -7584,7 +7593,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		usb1: usb3@3110000 {
-@@ -763,6 +804,14 @@
+@@ -764,6 +805,14 @@
  			dr_mode = "host";
  			snps,quirk-frame-length-adjustment = <0x20>;
  			snps,dis_rxdet_inp3_quirk;
@@ -7599,7 +7608,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  		};
  
  		ccn@4000000 {
-@@ -770,6 +819,14 @@
+@@ -771,6 +820,14 @@
  			reg = <0x0 0x04000000 0x0 0x01000000>;
  			interrupts = <0 12 4>;
  		};
@@ -7614,7 +7623,7 @@ Signed-off-by: Zhao Qiang <qiang.zhao@nxp.com>
  	};
  
  	ddr1: memory-controller@1080000 {
-@@ -785,4 +842,44 @@
+@@ -786,4 +843,44 @@
  		interrupts = <0 18 0x4>;
  		little-endian;
  	};

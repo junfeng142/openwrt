@@ -3,12 +3,11 @@
 
 move_config() {
 	. /lib/functions.sh
-	. /lib/upgrade/common.sh
 
 	case "$(board_name)" in
 		erlite)
 			mount -t vfat /dev/sda1 /mnt
-			[ -f "/mnt/$BACKUP_FILE" ] && mv -f "/mnt/$BACKUP_FILE" /
+			[ -f /mnt/sysupgrade.tgz ] && mv -f /mnt/sysupgrade.tgz /
 			umount /mnt
 			;;
 	esac

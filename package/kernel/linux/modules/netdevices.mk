@@ -33,6 +33,18 @@ endef
 $(eval $(call KernelPackage,skge))
 
 
+define KernelPackage/alx
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Qualcomm Atheros AR816x/AR817x PCI-E Ethernet Network Driver
+  DEPENDS:=@PCI_SUPPORT +kmod-mdio
+  KCONFIG:=CONFIG_ALX
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/atheros/alx/alx.ko
+  AUTOLOAD:=$(call AutoProbe,alx)
+endef
+
+$(eval $(call KernelPackage,alx))
+
+
 define KernelPackage/atl2
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Atheros L2 Fast Ethernet support
@@ -641,6 +653,38 @@ endef
 
 $(eval $(call KernelPackage,ixgbevf))
 
+define KernelPackage/i40e
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Intel(R) Ethernet Controller XL710 Family support
+  DEPENDS:=@PCI_SUPPORT +kmod-mdio +kmod-ptp +kmod-hwmon-core
+  KCONFIG:=CONFIG_I40E \
+    CONFIG_I40E_DCB=n
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/i40e/i40e.ko
+  AUTOLOAD:=$(call AutoProbe,i40e)
+endef
+
+define KernelPackage/i40e/description
+ Kernel modules for Intel(R) Ethernet Controller XL710 Family 40 Gigabit Ethernet adapters.
+endef
+
+$(eval $(call KernelPackage,i40e))
+
+
+define KernelPackage/i40evf
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Intel(R) Ethernet Adaptive Virtual Function support
+  DEPENDS:=@PCI_SUPPORT +kmod-i40e
+  KCONFIG:=CONFIG_I40EVF
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/i40evf/i40evf.ko
+  AUTOLOAD:=$(call AutoProbe,i40evf)
+endef
+
+define KernelPackage/i40evf/description
+ Kernel modules for Intel(R) Ethernet Controller XL710 Family Virtual Function Ethernet adapters.
+endef
+
+$(eval $(call KernelPackage,i40evf))
+
 
 define KernelPackage/b44
   TITLE:=Broadcom 44xx driver
@@ -930,7 +974,7 @@ $(eval $(call KernelPackage,of-mdio))
 
 define KernelPackage/vmxnet3
   SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=VMware VMXNET3 ethernet driver 
+  TITLE:=VMware VMXNET3 ethernet driver
   DEPENDS:=@PCI_SUPPORT
   KCONFIG:=CONFIG_VMXNET3
   FILES:=$(LINUX_DIR)/drivers/net/vmxnet3/vmxnet3.ko
@@ -992,6 +1036,23 @@ endef
 
 $(eval $(call KernelPackage,bnx2))
 
+
+define KernelPackage/bnx2x
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=QLogic 5771x/578xx 10/20-Gigabit ethernet adapter driver
+  DEPENDS:=@PCI_SUPPORT +bnx2x-firmware +kmod-lib-crc32c +kmod-mdio +kmod-ptp +kmod-lib-zlib-inflate
+  FILES:=$(LINUX_DIR)/drivers/net/ethernet/broadcom/bnx2x/bnx2x.ko
+  KCONFIG:= \
+	CONFIG_BNX2X \
+	CONFIG_BNX2X_SRIOV=y
+  AUTOLOAD:=$(call AutoProbe,bnx2x)
+endef
+
+define KernelPackage/bnx2x/description
+  QLogic BCM57710/57711/57711E/57712/57712_MF/57800/57800_MF/57810/57810_MF/57840/57840_MF Driver
+endef
+
+$(eval $(call KernelPackage,bnx2x))
 
 define KernelPackage/be2net
   SUBMENU:=$(NETWORK_DEVICES_MENU)

@@ -64,4 +64,3 @@ start_service()
 	procd_close_instance
   	echo "Dawn instance started!"
 }
-

@@ -31,11 +31,14 @@ msgstr "首次登录账号"
 msgid "First Login Password"
 msgstr "首次登录密码"
 
+msgid "Please make sure the router time is consistent with the browser time, otherwise the password verification will fail!"
+msgstr "请确保路由器时间和浏览器时间一致，否则密码校验通不过！"
+
+msgid "Advanced Settings"
+msgstr "高级设置"
+
 msgid "Update binary files manually"
 msgstr "手动更新二进制文件"
-
-msgid "Project storage directory"
-msgstr "项目存放路径"
 
 msgid "Choose local file:"
 msgstr "选择本地文件："
@@ -45,9 +48,6 @@ msgstr "创建上传文件错误。"
 
 msgid "The uploaded file is invalid."
 msgstr "上传的文件无效。"
-
-msgid "File saved to"
-msgstr "文件保存到"
 
 msgid "Open Web-URL"
 msgstr "打开管理界面"

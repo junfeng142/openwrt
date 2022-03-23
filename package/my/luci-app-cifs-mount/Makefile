@@ -6,13 +6,47 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI for SMB/CIFS Mount
-LUCI_DEPENDS:=+kmod-fs-cifs +kmod-nls-utf8
-LUCI_PKGARCH:=all
 PKG_NAME:=luci-app-cifs-mount
 PKG_VERSION:=1
 PKG_RELEASE:=7
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
-include $(TOPDIR)/feeds/luci/luci.mk
+include $(INCLUDE_DIR)/package.mk
 
-# call BuildPackage - OpenWrt buildroot signature
+define Package/$(PKG_NAME)
+	SECTION:=luci
+	CATEGORY:=LuCI
+	SUBMENU:=3. Applications
+	TITLE:=LuCI for SMB/CIFS Mount
+	PKGARCH:=all
+	DEPENDS:=+kmod-fs-cifs +kmod-nls-utf8
+endef
+
+define Package/$(PKG_NAME)/description
+	LuCI for SMB/CIFS Mount
+endef
+
+# 禁止OpenWrt对二进制文件进行strip
+STRIP:=true
+
+define Build/Prepare
+endef
+
+define Build/Compile
+endef
+
+define Package/$(PKG_NAME)/postinst
+#!/bin/sh
+rm -fr /tmp/luci-indexcache /tmp/luci-modulecache
+endef
+
+define Package/$(PKG_NAME)/install
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
+	cp -pR ./luasrc/* $(1)/usr/lib/lua/luci
+	$(INSTALL_DIR) $(1)/
+	cp -pR ./root/* $(1)/
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
+	po2lmo ./po/zh-cn/cifs.po $(1)/usr/lib/lua/luci/i18n/cifs.zh-cn.lmo
+endef
+
+$(eval $(call BuildPackage,$(PKG_NAME)))
