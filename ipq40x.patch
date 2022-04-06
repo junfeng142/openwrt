@@ -1,0 +1,2363 @@
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/040-dmaengine-qcom-bam-Process-multiple-pending-descript.patch b/target/linux/ipq40xx/patches-4.14/040-dmaengine-qcom-bam-Process-multiple-pending-descript.patch
+--- a/target/linux/ipq40xx/patches-4.14/040-dmaengine-qcom-bam-Process-multiple-pending-descript.patch	2022-04-06 13:14:18.855196436 +0800
++++ b/target/linux/ipq40xx/patches-4.14/040-dmaengine-qcom-bam-Process-multiple-pending-descript.patch	2022-04-06 13:15:10.966809417 +0800
+@@ -159,10 +159,10 @@
+ -		bam_chan_init_hw(bchan, bchan->curr_txd->dir);
+ -		list_add(&bchan->curr_txd->vd.node, &bchan->vc.desc_issued);
+ -		bchan->curr_txd = NULL;
+-+	list_for_each_entry_safe(async_desc, tmp,
+-+				&bchan->desc_list, desc_node) {
+-+		list_add(&async_desc->vd.node, &bchan->vc.desc_issued);
+-+		list_del(&async_desc->desc_node);
+++        list_for_each_entry_safe(async_desc, tmp,
+++                                &bchan->desc_list, desc_node) {
+++                list_add(&async_desc->vd.node, &bchan->vc.desc_issued);
+++                list_del(&async_desc->desc_node);
+  	}
+  
+  	vchan_get_all_descriptors(&bchan->vc, &head);
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/050-0002-mtd-nand-qcom-add-command-elements-in-BAM-transactio.patch b/target/linux/ipq40xx/patches-4.14/050-0002-mtd-nand-qcom-add-command-elements-in-BAM-transactio.patch
+--- a/target/linux/ipq40xx/patches-4.14/050-0002-mtd-nand-qcom-add-command-elements-in-BAM-transactio.patch	2022-04-06 13:14:18.852196458 +0800
++++ b/target/linux/ipq40xx/patches-4.14/050-0002-mtd-nand-qcom-add-command-elements-in-BAM-transactio.patch	2022-04-06 13:15:10.964809432 +0800
+@@ -57,7 +57,7 @@
+  	u32 cmd_sgl_pos;
+  	u32 cmd_sgl_start;
+  	u32 tx_sgl_pos;
+-@@ -462,7 +472,8 @@ alloc_bam_transaction(struct qcom_nand_c
++@@ -464,7 +474,8 @@ alloc_bam_transaction(struct qcom_nand_c
+  
+  	bam_txn_size =
+  		sizeof(*bam_txn) + num_cw *
+@@ -67,7 +67,7 @@
+  		(sizeof(*bam_txn->data_sgl) * QPIC_PER_CW_DATA_SGL));
+  
+  	bam_txn_buf = devm_kzalloc(nandc->dev, bam_txn_size, GFP_KERNEL);
+-@@ -472,6 +483,10 @@ alloc_bam_transaction(struct qcom_nand_c
++@@ -474,6 +485,10 @@ alloc_bam_transaction(struct qcom_nand_c
+  	bam_txn = bam_txn_buf;
+  	bam_txn_buf += sizeof(*bam_txn);
+  
+@@ -78,7 +78,7 @@
+  	bam_txn->cmd_sgl = bam_txn_buf;
+  	bam_txn_buf +=
+  		sizeof(*bam_txn->cmd_sgl) * QPIC_PER_CW_CMD_SGL * num_cw;
+-@@ -489,6 +504,8 @@ static void clear_bam_transaction(struct
++@@ -491,6 +506,8 @@ static void clear_bam_transaction(struct
+  	if (!nandc->props->is_bam)
+  		return;
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/050-0003-mtd-nand-qcom-support-for-command-descriptor-formati.patch b/target/linux/ipq40xx/patches-4.14/050-0003-mtd-nand-qcom-support-for-command-descriptor-formati.patch
+--- a/target/linux/ipq40xx/patches-4.14/050-0003-mtd-nand-qcom-support-for-command-descriptor-formati.patch	2022-04-06 13:14:18.871196316 +0800
++++ b/target/linux/ipq40xx/patches-4.14/050-0003-mtd-nand-qcom-support-for-command-descriptor-formati.patch	2022-04-06 13:15:10.976809343 +0800
+@@ -51,7 +51,7 @@
+  	dma_addr_t base_dma;
+  
+  	struct clk *core_clk;
+-@@ -751,6 +761,66 @@ static int prepare_bam_async_desc(struct
++@@ -753,6 +763,66 @@ static int prepare_bam_async_desc(struct
+  }
+  
+  /*
+@@ -118,7 +118,7 @@
+   * Prepares the data descriptor for BAM DMA which will be used for NAND
+   * data reads and writes.
+   */
+-@@ -868,19 +938,22 @@ static int read_reg_dma(struct qcom_nand
++@@ -870,19 +940,22 @@ static int read_reg_dma(struct qcom_nand
+  {
+  	bool flow_control = false;
+  	void *vaddr;
+@@ -148,7 +148,7 @@
+  }
+  
+  /*
+-@@ -897,13 +970,9 @@ static int write_reg_dma(struct qcom_nan
++@@ -899,13 +972,9 @@ static int write_reg_dma(struct qcom_nan
+  	bool flow_control = false;
+  	struct nandc_regs *regs = nandc->regs;
+  	void *vaddr;
+@@ -162,7 +162,7 @@
+  	if (first == NAND_ERASED_CW_DETECT_CFG) {
+  		if (flags & NAND_ERASED_CW_SET)
+  			vaddr = &regs->erased_cw_detect_cfg_set;
+-@@ -920,10 +989,15 @@ static int write_reg_dma(struct qcom_nan
++@@ -922,10 +991,15 @@ static int write_reg_dma(struct qcom_nan
+  	if (first == NAND_DEV_CMD_VLD_RESTORE || first == NAND_DEV_CMD_VLD)
+  		first = dev_cmd_reg_addr(nandc, NAND_DEV_CMD_VLD);
+  
+@@ -181,7 +181,7 @@
+  }
+  
+  /*
+-@@ -1187,7 +1261,8 @@ static int submit_descs(struct qcom_nand
++@@ -1189,7 +1263,8 @@ static int submit_descs(struct qcom_nand
+  		}
+  
+  		if (bam_txn->cmd_sgl_pos > bam_txn->cmd_sgl_start) {
+@@ -191,7 +191,7 @@
+  			if (r)
+  				return r;
+  		}
+-@@ -2725,6 +2800,7 @@ static int qcom_nandc_probe(struct platf
++@@ -2728,6 +2803,7 @@ static int qcom_nandc_probe(struct platf
+  	if (IS_ERR(nandc->base))
+  		return PTR_ERR(nandc->base);
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/050-0004-mtd-nand-provide-several-helpers-to-do-common-NAND-o.patch b/target/linux/ipq40xx/patches-4.14/050-0004-mtd-nand-provide-several-helpers-to-do-common-NAND-o.patch
+--- a/target/linux/ipq40xx/patches-4.14/050-0004-mtd-nand-provide-several-helpers-to-do-common-NAND-o.patch	2022-04-06 13:14:18.840196548 +0800
++++ b/target/linux/ipq40xx/patches-4.14/050-0004-mtd-nand-provide-several-helpers-to-do-common-NAND-o.patch	2022-04-06 13:15:10.954809505 +0800
+@@ -1502,7 +1502,7 @@
+  		}
+ --- a/drivers/mtd/nand/qcom_nandc.c
+ +++ b/drivers/mtd/nand/qcom_nandc.c
+-@@ -1990,7 +1990,7 @@ static int qcom_nandc_write_oob(struct m
++@@ -1992,7 +1992,7 @@ static int qcom_nandc_write_oob(struct m
+  	struct nand_ecc_ctrl *ecc = &chip->ecc;
+  	u8 *oob = chip->oob_poi;
+  	int data_size, oob_size;
+@@ -1511,7 +1511,7 @@
+  
+  	host->use_ecc = true;
+  
+-@@ -2027,11 +2027,7 @@ static int qcom_nandc_write_oob(struct m
++@@ -2029,11 +2029,7 @@ static int qcom_nandc_write_oob(struct m
+  		return -EIO;
+  	}
+  
+@@ -1524,7 +1524,7 @@
+  }
+  
+  static int qcom_nandc_block_bad(struct mtd_info *mtd, loff_t ofs)
+-@@ -2081,7 +2077,7 @@ static int qcom_nandc_block_markbad(stru
++@@ -2083,7 +2079,7 @@ static int qcom_nandc_block_markbad(stru
+  	struct qcom_nand_host *host = to_qcom_nand_host(chip);
+  	struct qcom_nand_controller *nandc = get_qcom_nand_controller(chip);
+  	struct nand_ecc_ctrl *ecc = &chip->ecc;
+@@ -1533,7 +1533,7 @@
+  
+  	clear_read_regs(nandc);
+  	clear_bam_transaction(nandc);
+-@@ -2114,11 +2110,7 @@ static int qcom_nandc_block_markbad(stru
++@@ -2116,11 +2112,7 @@ static int qcom_nandc_block_markbad(stru
+  		return -EIO;
+  	}
+  
+@@ -1548,7 +1548,7 @@
+  /*
+ --- a/include/linux/mtd/rawnand.h
+ +++ b/include/linux/mtd/rawnand.h
+-@@ -1313,6 +1313,35 @@ int nand_write_page_raw(struct mtd_info
++@@ -1311,6 +1311,35 @@ int nand_write_page_raw(struct mtd_info
+  /* Reset and initialize a NAND device */
+  int nand_reset(struct nand_chip *chip, int chipnr);
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/050-0005-mtd-nand-force-drivers-to-explicitly-send-READ-PROG-.patch b/target/linux/ipq40xx/patches-4.14/050-0005-mtd-nand-force-drivers-to-explicitly-send-READ-PROG-.patch
+--- a/target/linux/ipq40xx/patches-4.14/050-0005-mtd-nand-force-drivers-to-explicitly-send-READ-PROG-.patch	2022-04-06 13:14:18.861196391 +0800
++++ b/target/linux/ipq40xx/patches-4.14/050-0005-mtd-nand-force-drivers-to-explicitly-send-READ-PROG-.patch	2022-04-06 13:15:10.970809388 +0800
+@@ -39,7 +39,7 @@
+ 
+ --- a/drivers/mtd/nand/qcom_nandc.c
+ +++ b/drivers/mtd/nand/qcom_nandc.c
+-@@ -1725,6 +1725,7 @@ static int qcom_nandc_read_page(struct m
++@@ -1727,6 +1727,7 @@ static int qcom_nandc_read_page(struct m
+  	u8 *data_buf, *oob_buf = NULL;
+  	int ret;
+  
+@@ -47,7 +47,7 @@
+  	data_buf = buf;
+  	oob_buf = oob_required ? chip->oob_poi : NULL;
+  
+-@@ -1750,6 +1751,7 @@ static int qcom_nandc_read_page_raw(stru
++@@ -1752,6 +1753,7 @@ static int qcom_nandc_read_page_raw(stru
+  	int i, ret;
+  	int read_loc;
+  
+@@ -55,7 +55,7 @@
+  	data_buf = buf;
+  	oob_buf = chip->oob_poi;
+  
+-@@ -1850,6 +1852,8 @@ static int qcom_nandc_write_page(struct
++@@ -1852,6 +1854,8 @@ static int qcom_nandc_write_page(struct
+  	u8 *data_buf, *oob_buf;
+  	int i, ret;
+  
+@@ -64,7 +64,7 @@
+  	clear_read_regs(nandc);
+  	clear_bam_transaction(nandc);
+  
+-@@ -1902,6 +1906,9 @@ static int qcom_nandc_write_page(struct
++@@ -1904,6 +1908,9 @@ static int qcom_nandc_write_page(struct
+  
+  	free_descs(nandc);
+  
+@@ -74,7 +74,7 @@
+  	return ret;
+  }
+  
+-@@ -1916,6 +1923,7 @@ static int qcom_nandc_write_page_raw(str
++@@ -1918,6 +1925,7 @@ static int qcom_nandc_write_page_raw(str
+  	u8 *data_buf, *oob_buf;
+  	int i, ret;
+  
+@@ -82,7 +82,7 @@
+  	clear_read_regs(nandc);
+  	clear_bam_transaction(nandc);
+  
+-@@ -1970,6 +1978,9 @@ static int qcom_nandc_write_page_raw(str
++@@ -1972,6 +1980,9 @@ static int qcom_nandc_write_page_raw(str
+  
+  	free_descs(nandc);
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/072-qcom-ipq4019-add-cpu-operating-points-for-cpufreq-su.patch b/target/linux/ipq40xx/patches-4.14/072-qcom-ipq4019-add-cpu-operating-points-for-cpufreq-su.patch
+--- a/target/linux/ipq40xx/patches-4.14/072-qcom-ipq4019-add-cpu-operating-points-for-cpufreq-su.patch	2022-04-06 13:14:18.867196346 +0800
++++ b/target/linux/ipq40xx/patches-4.14/072-qcom-ipq4019-add-cpu-operating-points-for-cpufreq-su.patch	2022-04-06 13:15:10.973809366 +0800
+@@ -10,7 +10,7 @@
+ Signed-off-by: John Crispin <john@phrozen.org>
+ ---
+  arch/arm/boot/dts/qcom-ipq4019.dtsi | 34 ++++++++++++++++++++++++++--------
+- 1 file changed, 30 insertions(+), 8 deletions(-)
++ 1 file changed, 26 insertions(+), 8 deletions(-)
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+@@ -54,7 +54,7 @@
+  		};
+  
+  		L2: l2-cache {
+-@@ -94,6 +90,32 @@
++@@ -94,6 +90,28 @@
+  		};
+  	};
+  
+@@ -65,22 +65,18 @@
+ +		opp-48000000 {
+ +			opp-hz = /bits/ 64 <48000000>;
+ +			clock-latency-ns = <256000>;
+-+			opp-microvolt = <1100000>;
+ +		};
+ +		opp-200000000 {
+ +			opp-hz = /bits/ 64 <200000000>;
+ +			clock-latency-ns = <256000>;
+-+			opp-microvolt = <1100000>;
+ +		};
+ +		opp-500000000 {
+ +			opp-hz = /bits/ 64 <500000000>;
+ +			clock-latency-ns = <256000>;
+-+			opp-microvolt = <1100000>;
+ +		};
+ +		opp-716000000 {
+ +			opp-hz = /bits/ 64 <716000000>;
+ +			clock-latency-ns = <256000>;
+-+			opp-microvolt = <1100000>;
+ +		};
+ +	};
+ +
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/074-ARM-qcom-Add-IPQ4019-SoC-support.patch b/target/linux/ipq40xx/patches-4.14/074-ARM-qcom-Add-IPQ4019-SoC-support.patch
+--- a/target/linux/ipq40xx/patches-4.14/074-ARM-qcom-Add-IPQ4019-SoC-support.patch	2022-04-06 13:14:18.880196248 +0800
++++ b/target/linux/ipq40xx/patches-4.14/074-ARM-qcom-Add-IPQ4019-SoC-support.patch	2022-04-06 13:15:10.985809277 +0800
+@@ -14,7 +14,7 @@
+ 
+ --- a/arch/arm/Makefile
+ +++ b/arch/arm/Makefile
+-@@ -150,6 +150,7 @@ endif
++@@ -152,6 +152,7 @@ endif
+  textofs-$(CONFIG_ARCH_MSM8X60) := 0x00208000
+  textofs-$(CONFIG_ARCH_MSM8960) := 0x00208000
+  textofs-$(CONFIG_ARCH_AXXIA) := 0x00308000
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/077-qcom-ipq4019-add-USB-devicetree-nodes.patch b/target/linux/ipq40xx/patches-4.14/077-qcom-ipq4019-add-USB-devicetree-nodes.patch
+--- a/target/linux/ipq40xx/patches-4.14/077-qcom-ipq4019-add-USB-devicetree-nodes.patch	2022-04-06 13:14:18.862196383 +0800
++++ b/target/linux/ipq40xx/patches-4.14/077-qcom-ipq4019-add-USB-devicetree-nodes.patch	2022-04-06 13:15:10.970809388 +0800
+@@ -41,7 +41,7 @@
+  };
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -414,5 +414,79 @@
++@@ -410,5 +410,79 @@
+  					  "legacy";
+  			status = "disabled";
+  		};
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/078-ARM-dts-ipq4019-Add-a-few-peripheral-nodes.patch b/target/linux/ipq40xx/patches-4.14/078-ARM-dts-ipq4019-Add-a-few-peripheral-nodes.patch
+--- a/target/linux/ipq40xx/patches-4.14/078-ARM-dts-ipq4019-Add-a-few-peripheral-nodes.patch	2022-04-06 13:14:18.869196331 +0800
++++ b/target/linux/ipq40xx/patches-4.14/078-ARM-dts-ipq4019-Add-a-few-peripheral-nodes.patch	2022-04-06 13:15:10.974809358 +0800
+@@ -41,7 +41,7 @@
+  	};
+  
+  	cpus {
+-@@ -136,6 +138,12 @@
++@@ -132,6 +134,12 @@
+  		};
+  	};
+  
+@@ -54,7 +54,7 @@
+  	timer {
+  		compatible = "arm,armv7-timer";
+  		interrupts = <1 2 0xf08>,
+-@@ -181,13 +189,13 @@
++@@ -177,13 +185,13 @@
+  			#gpio-cells = <2>;
+  			interrupt-controller;
+  			#interrupt-cells = <2>;
+@@ -70,7 +70,7 @@
+  			clocks = <&gcc GCC_BLSP1_AHB_CLK>;
+  			clock-names = "bam_clk";
+  			#dma-cells = <1>;
+-@@ -195,7 +203,7 @@
++@@ -191,7 +199,7 @@
+  			status = "disabled";
+  		};
+  
+@@ -79,7 +79,7 @@
+  			compatible = "qcom,spi-qup-v2.2.1";
+  			reg = <0x78b5000 0x600>;
+  			interrupts = <GIC_SPI 95 IRQ_TYPE_LEVEL_HIGH>;
+-@@ -204,10 +212,26 @@
++@@ -200,10 +208,26 @@
+  			clock-names = "core", "iface";
+  			#address-cells = <1>;
+  			#size-cells = <0>;
+@@ -107,7 +107,7 @@
+  			compatible = "qcom,i2c-qup-v2.2.1";
+  			reg = <0x78b7000 0x600>;
+  			interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
+-@@ -216,14 +240,29 @@
++@@ -212,14 +236,29 @@
+  			clock-names = "iface", "core";
+  			#address-cells = <1>;
+  			#size-cells = <0>;
+@@ -138,7 +138,7 @@
+  			clocks = <&gcc GCC_CRYPTO_AHB_CLK>;
+  			clock-names = "bam_clk";
+  			#dma-cells = <1>;
+-@@ -297,7 +336,7 @@
++@@ -293,7 +332,7 @@
+  		serial@78af000 {
+  			compatible = "qcom,msm-uartdm-v1.4", "qcom,msm-uartdm";
+  			reg = <0x78af000 0x200>;
+@@ -147,7 +147,7 @@
+  			status = "disabled";
+  			clocks = <&gcc GCC_BLSP1_UART1_APPS_CLK>,
+  				<&gcc GCC_BLSP1_AHB_CLK>;
+-@@ -309,7 +348,7 @@
++@@ -305,7 +344,7 @@
+  		serial@78b0000 {
+  			compatible = "qcom,msm-uartdm-v1.4", "qcom,msm-uartdm";
+  			reg = <0x78b0000 0x200>;
+@@ -156,7 +156,7 @@
+  			status = "disabled";
+  			clocks = <&gcc GCC_BLSP1_UART2_APPS_CLK>,
+  				<&gcc GCC_BLSP1_AHB_CLK>;
+-@@ -331,6 +370,101 @@
++@@ -327,6 +366,101 @@
+  			reg = <0x4ab000 0x4>;
+  		};
+  
+@@ -258,7 +258,7 @@
+  		wifi0: wifi@a000000 {
+  			compatible = "qcom,ipq4019-wifi";
+  			reg = <0xa000000 0x200000>;
+-@@ -364,7 +498,7 @@
++@@ -360,7 +494,7 @@
+  				     <GIC_SPI 45 IRQ_TYPE_EDGE_RISING>,
+  				     <GIC_SPI 46 IRQ_TYPE_EDGE_RISING>,
+  				     <GIC_SPI 47 IRQ_TYPE_EDGE_RISING>,
+@@ -267,7 +267,7 @@
+  			interrupt-names =  "msi0",  "msi1",  "msi2",  "msi3",
+  					   "msi4",  "msi5",  "msi6",  "msi7",
+  					   "msi8",  "msi9", "msi10", "msi11",
+-@@ -406,7 +540,7 @@
++@@ -402,7 +536,7 @@
+  				     <GIC_SPI 61 IRQ_TYPE_EDGE_RISING>,
+  				     <GIC_SPI 62 IRQ_TYPE_EDGE_RISING>,
+  				     <GIC_SPI 63 IRQ_TYPE_EDGE_RISING>,
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/079-ARM-dts-ipq4019-fix-PCI-range.patch b/target/linux/ipq40xx/patches-4.14/079-ARM-dts-ipq4019-fix-PCI-range.patch
+--- a/target/linux/ipq40xx/patches-4.14/079-ARM-dts-ipq4019-fix-PCI-range.patch	2022-04-06 13:14:18.859196406 +0800
++++ b/target/linux/ipq40xx/patches-4.14/079-ARM-dts-ipq4019-fix-PCI-range.patch	2022-04-06 13:15:10.969809395 +0800
+@@ -12,7 +12,7 @@
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -385,7 +385,7 @@
++@@ -381,7 +381,7 @@
+  			#size-cells = <2>;
+  
+  			ranges = <0x81000000 0 0x40200000 0x40200000 0 0x00100000
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/080-pinctrl-msm-fix-gpio-hog-related-boot-issues.patch b/target/linux/ipq40xx/patches-4.14/080-pinctrl-msm-fix-gpio-hog-related-boot-issues.patch
+--- a/target/linux/ipq40xx/patches-4.14/080-pinctrl-msm-fix-gpio-hog-related-boot-issues.patch	2022-04-06 13:14:18.885196211 +0800
++++ b/target/linux/ipq40xx/patches-4.14/080-pinctrl-msm-fix-gpio-hog-related-boot-issues.patch	2022-04-06 13:15:10.987809263 +0800
+@@ -61,7 +61,7 @@
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -186,6 +186,7 @@
++@@ -182,6 +182,7 @@
+  			compatible = "qcom,ipq4019-pinctrl";
+  			reg = <0x01000000 0x300000>;
+  			gpio-controller;
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/084-ARM-dts-ipq4019-Add-a-default-chosen-node.patch b/target/linux/ipq40xx/patches-4.14/084-ARM-dts-ipq4019-Add-a-default-chosen-node.patch
+--- a/target/linux/ipq40xx/patches-4.14/084-ARM-dts-ipq4019-Add-a-default-chosen-node.patch	2022-04-06 13:14:18.848196488 +0800
++++ b/target/linux/ipq40xx/patches-4.14/084-ARM-dts-ipq4019-Add-a-default-chosen-node.patch	2022-04-06 13:15:10.961809454 +0800
+@@ -34,7 +34,7 @@
+  			status = "ok";
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -350,7 +350,7 @@
++@@ -346,7 +346,7 @@
+  			regulator;
+  		};
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/085-mtd-nand-add-macronix-mx35lf1ge4ab.patch b/target/linux/ipq40xx/patches-4.14/085-mtd-nand-add-macronix-mx35lf1ge4ab.patch
+--- a/target/linux/ipq40xx/patches-4.14/085-mtd-nand-add-macronix-mx35lf1ge4ab.patch	1970-01-01 08:00:00.000000000 +0800
++++ b/target/linux/ipq40xx/patches-4.14/085-mtd-nand-add-macronix-mx35lf1ge4ab.patch	2022-04-06 13:15:10.967809410 +0800
+@@ -0,0 +1,13 @@
++--- a/drivers/mtd/nand/nand_ids.c
+++++ b/drivers/mtd/nand/nand_ids.c
++@@ -54,6 +54,10 @@ struct nand_flash_dev nand_flash_ids[] =
++ 		{ .id = {0xad, 0xde, 0x94, 0xda, 0x74, 0xc4} },
++ 		  SZ_8K, SZ_8K, SZ_2M, NAND_NEED_SCRAMBLING, 6, 640,
++ 		  NAND_ECC_INFO(40, SZ_1K), 4 },
+++	{"MX35LF1GE4AB 1G 3.3V 8-bit",
+++		{ .id = {0xc2, 0x12} },
+++		  SZ_2K, SZ_128, SZ_128K, NAND_NO_SUBPAGE_WRITE,
+++		  2, 64, NAND_ECC_INFO(4, SZ_512) },
++ 	{"W25N01GV 1G 3.3V 8-bit",
++ 		{ .id = {0xef, 0xaa} },
++ 		  SZ_2K, SZ_128, SZ_128K, NAND_NO_SUBPAGE_WRITE,
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/086-ARM-dts-qcom-ipq4019-enlarge-PCIe-BAR-range.patch b/target/linux/ipq40xx/patches-4.14/086-ARM-dts-qcom-ipq4019-enlarge-PCIe-BAR-range.patch
+--- a/target/linux/ipq40xx/patches-4.14/086-ARM-dts-qcom-ipq4019-enlarge-PCIe-BAR-range.patch	2022-04-06 13:14:18.863196376 +0800
++++ b/target/linux/ipq40xx/patches-4.14/086-ARM-dts-qcom-ipq4019-enlarge-PCIe-BAR-range.patch	2022-04-06 13:15:10.971809380 +0800
+@@ -29,7 +29,7 @@
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -401,8 +401,8 @@
++@@ -397,8 +397,8 @@
+  			#address-cells = <3>;
+  			#size-cells = <2>;
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/087-ARM-dts-qcom-ipq4019-Fix-MSI-IRQ-type.patch b/target/linux/ipq40xx/patches-4.14/087-ARM-dts-qcom-ipq4019-Fix-MSI-IRQ-type.patch
+--- a/target/linux/ipq40xx/patches-4.14/087-ARM-dts-qcom-ipq4019-Fix-MSI-IRQ-type.patch	2022-04-06 13:14:18.844196518 +0800
++++ b/target/linux/ipq40xx/patches-4.14/087-ARM-dts-qcom-ipq4019-Fix-MSI-IRQ-type.patch	2022-04-06 13:15:10.958809476 +0800
+@@ -21,7 +21,7 @@
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -404,7 +404,7 @@
++@@ -400,7 +400,7 @@
+  			ranges = <0x81000000 0 0x40200000 0x40200000 0 0x00100000>,
+  				 <0x82000000 0 0x40300000 0x40300000 0 0x00d00000>;
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0003-i2c-qup-minor-code-reorganization-for-use_dma.patch b/target/linux/ipq40xx/patches-4.14/088-0003-i2c-qup-minor-code-reorganization-for-use_dma.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0003-i2c-qup-minor-code-reorganization-for-use_dma.patch	2022-04-06 13:14:18.845196511 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0003-i2c-qup-minor-code-reorganization-for-use_dma.patch	2022-04-06 13:15:10.959809469 +0800
+@@ -27,7 +27,7 @@
+  	struct			dma_pool *dpool;
+  	struct			qup_i2c_tag start_tag;
+  	struct			qup_i2c_bam brx;
+-@@ -1288,7 +1290,7 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1289,7 +1291,7 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  			   int num)
+  {
+  	struct qup_i2c_dev *qup = i2c_get_adapdata(adap);
+@@ -36,7 +36,7 @@
+  
+  	qup->bus_err = 0;
+  	qup->qup_err = 0;
+-@@ -1317,13 +1319,12 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1318,13 +1320,12 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  			len = (msgs[idx].len > qup->out_fifo_sz) ||
+  			      (msgs[idx].len > qup->in_fifo_sz);
+  
+@@ -54,7 +54,7 @@
+  	}
+  
+  	idx = 0;
+-@@ -1347,15 +1348,17 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1348,15 +1349,17 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  
+  		reinit_completion(&qup->xfer);
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0004-i2c-qup-remove-redundant-variables-for-BAM-SG-count.patch b/target/linux/ipq40xx/patches-4.14/088-0004-i2c-qup-remove-redundant-variables-for-BAM-SG-count.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0004-i2c-qup-remove-redundant-variables-for-BAM-SG-count.patch	2022-04-06 13:14:18.881196241 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0004-i2c-qup-remove-redundant-variables-for-BAM-SG-count.patch	2022-04-06 13:15:10.985809277 +0800
+@@ -149,7 +149,7 @@
+  					      DMA_PREP_INTERRUPT);
+  		if (!rxd) {
+  			dev_err(qup->dev, "failed to get rx desc\n");
+-@@ -844,7 +838,7 @@ static int qup_i2c_bam_do_xfer(struct qu
++@@ -845,7 +839,7 @@ static int qup_i2c_bam_do_xfer(struct qu
+  			goto desc_err;
+  		}
+  
+@@ -158,7 +158,7 @@
+  			writel(QUP_BAM_INPUT_EOT,
+  			       qup->base + QUP_OUT_FIFO_BASE);
+  
+-@@ -862,10 +856,10 @@ static int qup_i2c_bam_do_xfer(struct qu
++@@ -863,10 +857,10 @@ static int qup_i2c_bam_do_xfer(struct qu
+  	}
+  
+  desc_err:
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0007-i2c-qup-proper-error-handling-for-i2c-error-in-BAM-m.patch b/target/linux/ipq40xx/patches-4.14/088-0007-i2c-qup-proper-error-handling-for-i2c-error-in-BAM-m.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0007-i2c-qup-proper-error-handling-for-i2c-error-in-BAM-m.patch	2022-04-06 13:14:18.877196271 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0007-i2c-qup-proper-error-handling-for-i2c-error-in-BAM-m.patch	2022-04-06 13:15:10.982809299 +0800
+@@ -67,7 +67,7 @@
+  		goto done;
+  	}
+  
+-@@ -847,20 +862,12 @@ static int qup_i2c_bam_do_xfer(struct qu
++@@ -848,20 +863,12 @@ static int qup_i2c_bam_do_xfer(struct qu
+  			goto desc_err;
+  		}
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0008-i2c-qup-use-the-complete-transfer-length-to-choose-D.patch b/target/linux/ipq40xx/patches-4.14/088-0008-i2c-qup-use-the-complete-transfer-length-to-choose-D.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0008-i2c-qup-use-the-complete-transfer-length-to-choose-D.patch	2022-04-06 13:14:18.876196278 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0008-i2c-qup-use-the-complete-transfer-length-to-choose-D.patch	2022-04-06 13:15:10.981809307 +0800
+@@ -22,7 +22,7 @@
+ 
+ --- a/drivers/i2c/busses/i2c-qup.c
+ +++ b/drivers/i2c/busses/i2c-qup.c
+-@@ -1300,7 +1300,8 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1301,7 +1301,8 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  			   int num)
+  {
+  	struct qup_i2c_dev *qup = i2c_get_adapdata(adap);
+@@ -32,7 +32,7 @@
+  
+  	qup->bus_err = 0;
+  	qup->qup_err = 0;
+-@@ -1326,14 +1327,14 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1327,14 +1328,14 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  				goto out;
+  			}
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0009-i2c-qup-change-completion-timeout-according-to-trans.patch b/target/linux/ipq40xx/patches-4.14/088-0009-i2c-qup-change-completion-timeout-according-to-trans.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0009-i2c-qup-change-completion-timeout-according-to-trans.patch	2022-04-06 13:14:18.874196293 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0009-i2c-qup-change-completion-timeout-according-to-trans.patch	2022-04-06 13:15:10.980809314 +0800
+@@ -50,7 +50,7 @@
+  		dev_err(qup->dev, "normal trans timed out\n");
+  		ret = -ETIMEDOUT;
+  	}
+-@@ -1605,6 +1610,8 @@ nodma:
++@@ -1606,6 +1611,8 @@ nodma:
+  	 */
+  	one_bit_t = (USEC_PER_SEC / clk_freq) + 1;
+  	qup->one_byte_t = one_bit_t * 9;
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0010-i2c-qup-fix-buffer-overflow-for-multiple-msg-of-maxi.patch b/target/linux/ipq40xx/patches-4.14/088-0010-i2c-qup-fix-buffer-overflow-for-multiple-msg-of-maxi.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0010-i2c-qup-fix-buffer-overflow-for-multiple-msg-of-maxi.patch	2022-04-06 13:14:18.850196473 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0010-i2c-qup-fix-buffer-overflow-for-multiple-msg-of-maxi.patch	2022-04-06 13:15:10.963809439 +0800
+@@ -233,7 +233,7 @@
+  	/* schedule the EOT and FLUSH I2C tags */
+  	len = 1;
+  	if (rx_cnt) {
+-@@ -886,11 +878,19 @@ desc_err:
++@@ -887,11 +879,19 @@ desc_err:
+  	return ret;
+  }
+  
+@@ -253,7 +253,7 @@
+  
+  	enable_irq(qup->irq);
+  	ret = qup_i2c_req_dma(qup);
+-@@ -913,9 +913,34 @@ static int qup_i2c_bam_xfer(struct i2c_a
++@@ -914,9 +914,34 @@ static int qup_i2c_bam_xfer(struct i2c_a
+  		goto out;
+  
+  	writel(qup->clk_ctl, qup->base + QUP_I2C_CLK_CTL);
+@@ -290,7 +290,7 @@
+  out:
+  	disable_irq(qup->irq);
+  
+-@@ -1468,7 +1493,8 @@ static int qup_i2c_probe(struct platform
++@@ -1469,7 +1494,8 @@ static int qup_i2c_probe(struct platform
+  		else if (ret != 0)
+  			goto nodma;
+  
+@@ -300,7 +300,7 @@
+  		qup->btx.sg = devm_kzalloc(&pdev->dev,
+  					   sizeof(*qup->btx.sg) * blocks,
+  					   GFP_KERNEL);
+-@@ -1611,7 +1637,7 @@ nodma:
++@@ -1612,7 +1638,7 @@ nodma:
+  	one_bit_t = (USEC_PER_SEC / clk_freq) + 1;
+  	qup->one_byte_t = one_bit_t * 9;
+  	qup->xfer_timeout = TOUT_MIN * HZ +
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0012-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch b/target/linux/ipq40xx/patches-4.14/088-0012-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0012-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch	2022-04-06 13:14:18.873196301 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0012-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch	2022-04-06 13:15:10.979809321 +0800
+@@ -283,7 +283,7 @@
+  }
+  
+  static void qup_i2c_set_blk_data(struct qup_i2c_dev *qup,
+-@@ -1006,64 +1075,6 @@ err:
++@@ -1007,64 +1076,6 @@ err:
+  	return ret;
+  }
+  
+@@ -348,7 +348,7 @@
+  static void qup_i2c_set_read_mode_v2(struct qup_i2c_dev *qup, int len)
+  {
+  	int tx_len = qup->blk.tx_tag_len;
+-@@ -1086,44 +1097,27 @@ static void qup_i2c_set_read_mode_v2(str
++@@ -1087,44 +1098,27 @@ static void qup_i2c_set_read_mode_v2(str
+  	}
+  }
+  
+@@ -402,7 +402,7 @@
+  }
+  
+  static int qup_i2c_read_fifo_v2(struct qup_i2c_dev *qup,
+-@@ -1224,49 +1218,130 @@ err:
++@@ -1225,49 +1219,130 @@ err:
+  	return ret;
+  }
+  
+@@ -552,7 +552,7 @@
+  static int qup_i2c_xfer(struct i2c_adapter *adap,
+  			struct i2c_msg msgs[],
+  			int num)
+-@@ -1305,10 +1380,11 @@ static int qup_i2c_xfer(struct i2c_adapt
++@@ -1306,10 +1381,11 @@ static int qup_i2c_xfer(struct i2c_adapt
+  			goto out;
+  		}
+  
+@@ -566,7 +566,7 @@
+  
+  		if (ret)
+  			break;
+-@@ -1487,6 +1563,10 @@ static int qup_i2c_probe(struct platform
++@@ -1488,6 +1564,10 @@ static int qup_i2c_probe(struct platform
+  	if (of_device_is_compatible(pdev->dev.of_node, "qcom,i2c-qup-v1.1.1")) {
+  		qup->adap.algo = &qup_i2c_algo;
+  		qup->adap.quirks = &qup_i2c_quirks;
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/088-0013-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch b/target/linux/ipq40xx/patches-4.14/088-0013-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch
+--- a/target/linux/ipq40xx/patches-4.14/088-0013-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch	2022-04-06 13:14:18.878196263 +0800
++++ b/target/linux/ipq40xx/patches-4.14/088-0013-i2c-qup-reorganization-of-driver-code-to-remove-poll.patch	2022-04-06 13:15:10.983809292 +0800
+@@ -386,7 +386,7 @@
+  	qup_i2c_set_blk_data(qup, msg);
+  
+  	blocks = qup->blk.count;
+-@@ -1026,7 +897,7 @@ static int qup_i2c_wait_for_complete(str
++@@ -1027,7 +898,7 @@ static int qup_i2c_wait_for_complete(str
+  	unsigned long left;
+  	int ret = 0;
+  
+@@ -395,7 +395,7 @@
+  	if (!left) {
+  		writel(1, qup->base + QUP_SW_RESET);
+  		ret = -ETIMEDOUT;
+-@@ -1038,65 +909,6 @@ static int qup_i2c_wait_for_complete(str
++@@ -1039,65 +910,6 @@ static int qup_i2c_wait_for_complete(str
+  	return ret;
+  }
+  
+@@ -461,7 +461,7 @@
+  static void qup_i2c_read_rx_fifo_v1(struct qup_i2c_dev *qup)
+  {
+  	struct qup_i2c_block *blk = &qup->blk;
+-@@ -1120,104 +932,6 @@ static void qup_i2c_read_rx_fifo_v1(stru
++@@ -1121,104 +933,6 @@ static void qup_i2c_read_rx_fifo_v1(stru
+  		blk->rx_bytes_read = true;
+  }
+  
+@@ -566,7 +566,7 @@
+  static void qup_i2c_write_rx_tags_v1(struct qup_i2c_dev *qup)
+  {
+  	struct i2c_msg *msg = qup->msg;
+-@@ -1404,13 +1118,434 @@ out:
++@@ -1405,13 +1119,434 @@ out:
+  	return ret;
+  }
+  
+@@ -1002,7 +1002,7 @@
+  
+  	qup->bus_err = 0;
+  	qup->qup_err = 0;
+-@@ -1419,6 +1554,10 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1420,6 +1555,10 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  	if (ret < 0)
+  		goto out;
+  
+@@ -1013,7 +1013,7 @@
+  	writel(1, qup->base + QUP_SW_RESET);
+  	ret = qup_i2c_poll_state(qup, QUP_RESET_STATE);
+  	if (ret)
+-@@ -1428,60 +1567,35 @@ static int qup_i2c_xfer_v2(struct i2c_ad
++@@ -1429,60 +1568,35 @@ static int qup_i2c_xfer_v2(struct i2c_ad
+  	writel(I2C_MINI_CORE | I2C_N_VAL_V2, qup->base + QUP_CONFIG);
+  	writel(QUP_V2_TAGS_EN, qup->base + QUP_I2C_MASTER_GEN);
+  
+@@ -1095,7 +1095,7 @@
+  
+  	if (ret == 0)
+  		ret = num;
+-@@ -1545,6 +1659,7 @@ static int qup_i2c_probe(struct platform
++@@ -1546,6 +1660,7 @@ static int qup_i2c_probe(struct platform
+  	u32 src_clk_freq = DEFAULT_SRC_CLK;
+  	u32 clk_freq = DEFAULT_CLK_FREQ;
+  	int blocks;
+@@ -1103,7 +1103,7 @@
+  
+  	qup = devm_kzalloc(&pdev->dev, sizeof(*qup), GFP_KERNEL);
+  	if (!qup)
+-@@ -1563,12 +1678,10 @@ static int qup_i2c_probe(struct platform
++@@ -1564,12 +1679,10 @@ static int qup_i2c_probe(struct platform
+  	if (of_device_is_compatible(pdev->dev.of_node, "qcom,i2c-qup-v1.1.1")) {
+  		qup->adap.algo = &qup_i2c_algo;
+  		qup->adap.quirks = &qup_i2c_quirks;
+@@ -1118,7 +1118,7 @@
+  		ret = qup_i2c_req_dma(qup);
+  
+  		if (ret == -EPROBE_DEFER)
+-@@ -1694,14 +1807,31 @@ nodma:
++@@ -1695,14 +1808,31 @@ nodma:
+  		ret = -EIO;
+  		goto fail;
+  	}
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/090-ipq40xx-fix-high-resolution-timer.patch b/target/linux/ipq40xx/patches-4.14/090-ipq40xx-fix-high-resolution-timer.patch
+--- a/target/linux/ipq40xx/patches-4.14/090-ipq40xx-fix-high-resolution-timer.patch	2022-04-06 13:14:18.834196593 +0800
++++ b/target/linux/ipq40xx/patches-4.14/090-ipq40xx-fix-high-resolution-timer.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,29 +0,0 @@
+-From 09f145f417a5d64d6b8d4476699dfb0eccc6c784 Mon Sep 17 00:00:00 2001
+-From: Abhishek Sahu <absahu@codeaurora.org>
+-Date: Tue, 7 May 2019 10:14:05 +0300
+-Subject: [PATCH] ipq40xx: fix high resolution timer
+-
+-Cherry-picked from CAF QSDK repo.
+-Original commit message:
+-The kernel is failing in switching the timer for high resolution
+-mode and clock source operates in 10ms resolution. The always-on
+-property needs to be given for timer device tree node to make
+-clock source working in 1ns resolution.
+-
+-Change-Id: I7c00b3c74d97c2a30ac9f05e18b511a0550fd459
+-Signed-off-by: Abhishek Sahu <absahu@codeaurora.org>
+-Signed-off-by: Pavel Kubelun <be.dissent@gmail.com>
+----
+- arch/arm/boot/dts/qcom-ipq4019.dtsi | 1 +
+- 1 file changed, 1 insertion(+)
+-
+---- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-+++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -167,6 +167,7 @@
+- 			     <1 4 0xf08>,
+- 			     <1 1 0xf08>;
+- 		clock-frequency = <48000000>;
+-+		always-on;
+- 	};
+- 
+- 	soc {
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/182-crypto-qce-fix-ctr-blocksize.patch b/target/linux/ipq40xx/patches-4.14/182-crypto-qce-fix-ctr-blocksize.patch
+--- a/target/linux/ipq40xx/patches-4.14/182-crypto-qce-fix-ctr-blocksize.patch	2022-04-06 13:14:18.857196421 +0800
++++ b/target/linux/ipq40xx/patches-4.14/182-crypto-qce-fix-ctr-blocksize.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,11 +0,0 @@
+---- a/drivers/crypto/qce/ablkcipher.c	2019-10-21 17:18:47.311684603 -0300
+-+++ b/drivers/crypto/qce/ablkcipher.c	2019-10-21 17:20:32.080765945 -0300
+-@@ -292,7 +292,7 @@
+- 		.name		= "ctr(aes)",
+- 		.drv_name	= "ctr-aes-qce",
+- 		.blocksize	= AES_BLOCK_SIZE,
+--		.ivsize		= AES_BLOCK_SIZE,
+-+		.ivsize		= 1,
+- 		.min_keysize	= AES_MIN_KEY_SIZE,
+- 		.max_keysize	= AES_MAX_KEY_SIZE,
+- 	},
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/183-crypto-qce-update-iv.patch b/target/linux/ipq40xx/patches-4.14/183-crypto-qce-update-iv.patch
+--- a/target/linux/ipq40xx/patches-4.14/183-crypto-qce-update-iv.patch	2022-04-06 13:14:18.875196286 +0800
++++ b/target/linux/ipq40xx/patches-4.14/183-crypto-qce-update-iv.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,68 +0,0 @@
+-diff --git a/drivers/crypto/qce/ablkcipher.c b/drivers/crypto/qce/ablkcipher.c
+-index 7a98bf5cc967..b935ce0acc1c 100644
+---- a/drivers/crypto/qce/ablkcipher.c
+-+++ b/drivers/crypto/qce/ablkcipher.c
+-@@ -14,6 +14,20 @@
+- 
+- static LIST_HEAD(ablkcipher_algs);
+- 
+-+static void qce_update_ctr_iv(u8 *iv, unsigned int ivsize, u32 add)
+-+{
+-+	__be32 *a = (__be32 *)(iv + ivsize);
+-+	u32 b;
+-+
+-+	for (; ivsize >= 4; ivsize -= 4) {
+-+		b = be32_to_cpu(*--a) + add;
+-+		*a = cpu_to_be32(b);
+-+		if (b >= add)
+-+			return;
+-+		add = 1;
+-+	}
+-+}
+-+
+- static void qce_ablkcipher_done(void *data)
+- {
+- 	struct crypto_async_request *async_req = data;
+-@@ -39,6 +53,18 @@ static void qce_ablkcipher_done(void *data)
+- 		dma_unmap_sg(qce->dev, rctx->src_sg, rctx->src_nents, dir_src);
+- 	dma_unmap_sg(qce->dev, rctx->dst_sg, rctx->dst_nents, dir_dst);
+- 
+-+	if (IS_CBC(rctx->flags)) {
+-+		if (IS_ENCRYPT(rctx->flags))
+-+			sg_pcopy_to_buffer(rctx->dst_sg, rctx->dst_nents,
+-+					   rctx->iv, rctx->ivsize,
+-+					   rctx->cryptlen - rctx->ivsize);
+-+		else
+-+			memcpy(rctx->iv, rctx->saved_iv, rctx->ivsize);
+-+	} else if (IS_CTR(rctx->flags) && IS_AES(rctx->flags)) {
+-+		qce_update_ctr_iv(rctx->iv, rctx->ivsize,
+-+				  DIV_ROUND_UP(rctx->cryptlen, AES_BLOCK_SIZE));
+-+	}
+-+
+- 	sg_free_table(&rctx->dst_tbl);
+- 
+- 	error = qce_check_status(qce, &status);
+-@@ -131,6 +157,11 @@ qce_ablkcipher_async_req_handle(struct crypto_async_request *async_req)
+- 
+- 	qce_dma_issue_pending(&qce->dma);
+- 
+-+	if (IS_CBC(rctx->flags) && IS_DECRYPT(rctx->flags))
+-+		sg_pcopy_to_buffer(rctx->src_sg, rctx->src_nents,
+-+				   rctx->saved_iv, rctx->ivsize,
+-+				   rctx->cryptlen - rctx->ivsize);
+-+
+- 	ret = qce_start(async_req, tmpl->crypto_alg_type, req->nbytes, 0);
+- 	if (ret)
+- 		goto error_terminate;
+-diff --git a/drivers/crypto/qce/cipher.h b/drivers/crypto/qce/cipher.h
+-index 5cab8f0706a8..a919022e28df 100644
+---- a/drivers/crypto/qce/cipher.h
+-+++ b/drivers/crypto/qce/cipher.h
+-@@ -43,6 +43,7 @@ struct qce_cipher_reqctx {
+- 	struct sg_table src_tbl;
+- 	struct scatterlist *src_sg;
+- 	unsigned int cryptlen;
+-+	u8 saved_iv[QCE_MAX_IV_SIZE];
+- };
+- 
+- static inline struct qce_alg_template *to_cipher_tmpl(struct crypto_tfm *tfm)
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/184-crypto-qce-allow-building-only-hashes-ciphers.patch b/target/linux/ipq40xx/patches-4.14/184-crypto-qce-allow-building-only-hashes-ciphers.patch
+--- a/target/linux/ipq40xx/patches-4.14/184-crypto-qce-allow-building-only-hashes-ciphers.patch	2022-04-06 13:14:18.883196226 +0800
++++ b/target/linux/ipq40xx/patches-4.14/184-crypto-qce-allow-building-only-hashes-ciphers.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,91 +0,0 @@
+-From 2f23be905522cc67505daaf4d94c0292dbddd315 Mon Sep 17 00:00:00 2001
+-From: Eneas U de Queiroz <cotequeiroz@gmail.com>
+-Date: Mon, 28 Oct 2019 15:17:19 -0300
+-Subject: [PATCH] crypto: qce - allow building only hashes/ciphers
+-
+-Signed-off-by: Eneas U de Queiroz <cotequeiroz@gmail.com>
+-
+-diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
+-index 1fb622f2a87d..0dc4bbcfc092 100644
+---- a/drivers/crypto/Kconfig
+-+++ b/drivers/crypto/Kconfig
+-@@ -580,5 +580,13 @@ config CRYPTO_DEV_QCE
+- 	tristate "Qualcomm crypto engine accelerator"
+- 	depends on (ARCH_QCOM || COMPILE_TEST) && HAS_DMA && HAS_IOMEM
+-+	help
+-+	  This driver supports Qualcomm crypto engine accelerator
+-+	  hardware. To compile this driver as a module, choose M here. The
+-+	  module will be called qcrypto.
+-+
+-+config CRYPTO_DEV_QCE_BLKCIPHER
+-+	bool
+-+	depends on CRYPTO_DEV_QCE
+- 	select CRYPTO_AES
+- 	select CRYPTO_LIB_DES
+- 	select CRYPTO_ECB
+-@@ -580,10 +588,29 @@ config CRYPTO_DEV_QCE
+- 	select CRYPTO_XTS
+- 	select CRYPTO_CTR
+- 	select CRYPTO_BLKCIPHER
+--	help
+--	  This driver supports Qualcomm crypto engine accelerator
+--	  hardware. To compile this driver as a module, choose M here. The
+--	  module will be called qcrypto.
+-+
+-+config CRYPTO_DEV_QCE_SHA
+-+	bool
+-+	depends on CRYPTO_DEV_QCE
+-+
+-+choice
+-+	prompt "Algorithms enabled for QCE acceleration"
+-+	default CRYPTO_DEV_QCE_ENABLE_ALL
+-+	depends on CRYPTO_DEV_QCE
+-+
+-+	config CRYPTO_DEV_QCE_ENABLE_ALL
+-+		bool "All supported algorithms"
+-+		select CRYPTO_DEV_QCE_BLKCIPHER
+-+		select CRYPTO_DEV_QCE_SHA
+-+
+-+	config CRYPTO_DEV_QCE_ENABLE_BLKCIPHER
+-+		bool "Block ciphers only"
+-+		select CRYPTO_DEV_QCE_BLKCIPHER
+-+
+-+	config CRYPTO_DEV_QCE_ENABLE_SHA
+-+		bool "Hash/HMAC only"
+-+		select CRYPTO_DEV_QCE_SHA
+-+endchoice
+- 
+- config CRYPTO_DEV_QCOM_RNG
+- 	tristate "Qualcomm Random Number Generator Driver"
+-diff --git a/drivers/crypto/qce/Makefile b/drivers/crypto/qce/Makefile
+-index 19a7f899acff..f6a411c255b8 100644
+---- a/drivers/crypto/qce/Makefile
+-+++ b/drivers/crypto/qce/Makefile
+-@@ -2,6 +2,7 @@
+- obj-$(CONFIG_CRYPTO_DEV_QCE) += qcrypto.o
+- qcrypto-objs := core.o \
+- 		common.o \
+--		dma.o \
+--		sha.o \
+--		ablkcipher.o
+-+		dma.o
+-+
+-+qcrypto-$(CONFIG_CRYPTO_DEV_QCE_SHA) += sha.o
+-+qcrypto-$(CONFIG_CRYPTO_DEV_QCE_BLKCIPHER) += ablkcipher.o
+-diff --git a/drivers/crypto/qce/core.c b/drivers/crypto/qce/core.c
+-index 08d4ce3bfddf..3428746f1869 100644
+---- a/drivers/crypto/qce/core.c
+-+++ b/drivers/crypto/qce/core.c
+-@@ -22,8 +22,12 @@
+- #define QCE_QUEUE_LENGTH	1
+- 
+- static const struct qce_algo_ops *qce_ops[] = {
+-+#ifdef CONFIG_CRYPTO_DEV_QCE_BLKCIPHER
+- 	&ablkcipher_ops,
+-+#endif
+-+#ifdef CONFIG_CRYPTO_DEV_QCE_SHA
+- 	&ahash_ops,
+-+#endif
+- };
+- 
+- static void qce_unregister_algs(struct qce_device *qce)
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/303-spi-nor-enable-4B-opcodes-for-mx25l25635f.patch b/target/linux/ipq40xx/patches-4.14/303-spi-nor-enable-4B-opcodes-for-mx25l25635f.patch
+--- a/target/linux/ipq40xx/patches-4.14/303-spi-nor-enable-4B-opcodes-for-mx25l25635f.patch	2022-04-06 13:14:18.879196256 +0800
++++ b/target/linux/ipq40xx/patches-4.14/303-spi-nor-enable-4B-opcodes-for-mx25l25635f.patch	2022-04-06 13:15:10.983809292 +0800
+@@ -1,6 +1,6 @@
+ --- a/drivers/mtd/spi-nor/spi-nor.c
+ +++ b/drivers/mtd/spi-nor/spi-nor.c
+-@@ -1032,6 +1032,7 @@ static const struct flash_info spi_nor_i
++@@ -1047,6 +1047,7 @@ static const struct flash_info spi_nor_i
+  	{ "mx25l12805d", INFO(0xc22018, 0, 64 * 1024, 256, 0) },
+  	{ "mx25l12855e", INFO(0xc22618, 0, 64 * 1024, 256, 0) },
+  	{ "mx25l25635e", INFO(0xc22019, 0, 64 * 1024, 512, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
+@@ -8,7 +8,7 @@
+  	{ "mx25u25635f", INFO(0xc22539, 0, 64 * 1024, 512, SECT_4K | SPI_NOR_4B_OPCODES) },
+  	{ "mx25l25655e", INFO(0xc22619, 0, 64 * 1024, 512, 0) },
+  	{ "mx66l51235l", INFO(0xc2201a, 0, 64 * 1024, 1024, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ | SPI_NOR_4B_OPCODES) },
+-@@ -1201,11 +1202,12 @@ static const struct flash_info spi_nor_i
++@@ -1216,11 +1217,12 @@ static const struct flash_info spi_nor_i
+  	{ },
+  };
+  
+@@ -23,7 +23,7 @@
+  
+  	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
+  	if (tmp < 0) {
+-@@ -1216,10 +1218,16 @@ static const struct flash_info *spi_nor_
++@@ -1231,10 +1233,16 @@ static const struct flash_info *spi_nor_
+  	for (tmp = 0; tmp < ARRAY_SIZE(spi_nor_ids) - 1; tmp++) {
+  		info = &spi_nor_ids[tmp];
+  		if (info->id_len) {
+@@ -42,7 +42,7 @@
+  	dev_err(nor->dev, "unrecognized JEDEC id bytes: %02x, %02x, %02x\n",
+  		id[0], id[1], id[2]);
+  	return ERR_PTR(-ENODEV);
+-@@ -2679,7 +2687,7 @@ int spi_nor_scan(struct spi_nor *nor, co
++@@ -2703,7 +2711,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+  		info = spi_nor_match_id(name);
+  	/* Try to auto-detect if chip name wasn't specified or not found */
+  	if (!info)
+@@ -51,7 +51,7 @@
+  	if (IS_ERR_OR_NULL(info))
+  		return -ENOENT;
+  
+-@@ -2690,7 +2698,7 @@ int spi_nor_scan(struct spi_nor *nor, co
++@@ -2714,7 +2722,7 @@ int spi_nor_scan(struct spi_nor *nor, co
+  	if (name && info->id_len) {
+  		const struct flash_info *jinfo;
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/400-sdhci-msm-fix-clock.patch b/target/linux/ipq40xx/patches-4.14/400-sdhci-msm-fix-clock.patch
+--- a/target/linux/ipq40xx/patches-4.14/400-sdhci-msm-fix-clock.patch	2022-04-06 13:14:18.836196578 +0800
++++ b/target/linux/ipq40xx/patches-4.14/400-sdhci-msm-fix-clock.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,11 +0,0 @@
+---- a/drivers/mmc/host/sdhci-msm.c
+-+++ b/drivers/mmc/host/sdhci-msm.c
+-@@ -1681,7 +1681,7 @@ MODULE_DEVICE_TABLE(of, sdhci_msm_dt_mat
+- 
+- static const struct sdhci_ops sdhci_msm_ops = {
+- 	.reset = sdhci_reset,
+--	.set_clock = sdhci_msm_set_clock,
+-+	.set_clock = sdhci_set_clock,
+- 	.get_min_clock = sdhci_msm_get_min_clock,
+- 	.get_max_clock = sdhci_msm_get_max_clock,
+- 	.set_bus_width = sdhci_set_bus_width,
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/700-net-add-qualcomm-mdio-and-phy.patch b/target/linux/ipq40xx/patches-4.14/700-net-add-qualcomm-mdio-and-phy.patch
+--- a/target/linux/ipq40xx/patches-4.14/700-net-add-qualcomm-mdio-and-phy.patch	2022-04-06 13:14:18.842196533 +0800
++++ b/target/linux/ipq40xx/patches-4.14/700-net-add-qualcomm-mdio-and-phy.patch	2022-04-06 13:15:10.956809491 +0800
+@@ -10,7 +10,7 @@
+ 
+ --- a/drivers/net/phy/Kconfig
+ +++ b/drivers/net/phy/Kconfig
+-@@ -481,6 +481,20 @@ config XILINX_GMII2RGMII
++@@ -482,6 +482,20 @@ config XILINX_GMII2RGMII
+  	  the Reduced Gigabit Media Independent Interface(RGMII) between
+  	  Ethernet physical media devices and the Gigabit Ethernet controller.
+  
+@@ -1202,7 +1202,6 @@
+ +	/* disable phy internal loopback */
+ +	mdiobus_write(bus, 0x1f, 0x10, 0x6860);
+ +	mdiobus_write(bus, 0x1f, 0x0, 0x9040);
+-+	ar40xx_phy_mmd_write(priv, 0x1f, 7, 0x8076, 0x0670); /* 1000_LED_n */
+ +
+ +	for (phy = 0; phy < AR40XX_NUM_PORTS - 1; phy++) {
+ +		/* disable mac loop back */
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/701-dts-ipq4019-add-mdio-node.patch b/target/linux/ipq40xx/patches-4.14/701-dts-ipq4019-add-mdio-node.patch
+--- a/target/linux/ipq40xx/patches-4.14/701-dts-ipq4019-add-mdio-node.patch	2022-04-06 13:14:18.854196443 +0800
++++ b/target/linux/ipq40xx/patches-4.14/701-dts-ipq4019-add-mdio-node.patch	2022-04-06 13:15:10.965809424 +0800
+@@ -15,7 +15,7 @@
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -567,6 +567,34 @@
++@@ -562,6 +562,34 @@
+  			status = "disabled";
+  		};
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/702-dts-ipq4019-add-PHY-switch-nodes.patch b/target/linux/ipq40xx/patches-4.14/702-dts-ipq4019-add-PHY-switch-nodes.patch
+--- a/target/linux/ipq40xx/patches-4.14/702-dts-ipq4019-add-PHY-switch-nodes.patch	2022-04-06 13:14:18.870196323 +0800
++++ b/target/linux/ipq40xx/patches-4.14/702-dts-ipq4019-add-PHY-switch-nodes.patch	2022-04-06 13:15:10.975809351 +0800
+@@ -14,7 +14,7 @@
+ 
+ --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+ +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -595,6 +595,29 @@
++@@ -590,6 +590,29 @@
+  			};
+  		};
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/703-net-IPQ4019-needs-rfs-vlan_tag-callbacks-in.patch b/target/linux/ipq40xx/patches-4.14/703-net-IPQ4019-needs-rfs-vlan_tag-callbacks-in.patch
+--- a/target/linux/ipq40xx/patches-4.14/703-net-IPQ4019-needs-rfs-vlan_tag-callbacks-in.patch	2022-04-06 13:14:18.849196481 +0800
++++ b/target/linux/ipq40xx/patches-4.14/703-net-IPQ4019-needs-rfs-vlan_tag-callbacks-in.patch	2022-04-06 13:15:10.962809446 +0800
+@@ -24,7 +24,7 @@
+ 
+ --- a/include/linux/netdevice.h
+ +++ b/include/linux/netdevice.h
+-@@ -713,6 +713,16 @@ struct xps_map {
++@@ -714,6 +714,16 @@ struct xps_map {
+  #define XPS_MIN_MAP_ALLOC ((L1_CACHE_ALIGN(offsetof(struct xps_map, queues[1])) \
+         - sizeof(struct xps_map)) / sizeof(u16))
+  
+@@ -41,7 +41,7 @@
+  /*
+   * This structure holds all XPS maps for device.  Maps are indexed by CPU.
+   */
+-@@ -1258,6 +1268,9 @@ struct net_device_ops {
++@@ -1259,6 +1269,9 @@ struct net_device_ops {
+  						     const struct sk_buff *skb,
+  						     u16 rxq_index,
+  						     u32 flow_id);
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/706-ar40xx-abort-probe-on-missig-phy.patch b/target/linux/ipq40xx/patches-4.14/706-ar40xx-abort-probe-on-missig-phy.patch
+--- a/target/linux/ipq40xx/patches-4.14/706-ar40xx-abort-probe-on-missig-phy.patch	1970-01-01 08:00:00.000000000 +0800
++++ b/target/linux/ipq40xx/patches-4.14/706-ar40xx-abort-probe-on-missig-phy.patch	2022-04-06 13:15:10.977809336 +0800
+@@ -0,0 +1,23 @@
++--- a/drivers/net/phy/ar40xx.c
+++++ b/drivers/net/phy/ar40xx.c
++@@ -2021,6 +2021,12 @@ static int ar40xx_probe(struct platform_
++ 	/* register switch */
++ 	swdev = &priv->dev;
++ 
+++	if (priv->mii_bus == NULL) {
+++		dev_err(&pdev->dev, "Probe failed - Missing PHYs!\n");
+++		ret = -ENODEV;
+++		goto err_missing_phy;
+++	}
+++
++ 	swdev->alias = dev_name(&priv->mii_bus->dev);
++ 
++ 	swdev->cpu_port = AR40XX_PORT_CPU;
++@@ -2052,6 +2058,7 @@ err_unregister_switch:
++ 	unregister_switch(&priv->dev);
++ err_unregister_phy:
++ 	phy_driver_unregister(&ar40xx_phy_driver);
+++err_missing_phy:
++ 	platform_set_drvdata(pdev, NULL);
++ 	return ret;
++ }
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/710-net-add-qualcomm-essedma-ethernet-driver.patch b/target/linux/ipq40xx/patches-4.14/710-net-add-qualcomm-essedma-ethernet-driver.patch
+--- a/target/linux/ipq40xx/patches-4.14/710-net-add-qualcomm-essedma-ethernet-driver.patch	2022-04-06 13:14:18.838196563 +0800
++++ b/target/linux/ipq40xx/patches-4.14/710-net-add-qualcomm-essedma-ethernet-driver.patch	2022-04-06 13:15:10.952809520 +0800
+@@ -2775,7 +2775,7 @@
+ +	int i;
+ +	u32 stat;
+ +
+-+	spin_lock(&edma_cinfo->stats_lock);
+++	spin_lock_bh(&edma_cinfo->stats_lock);
+ +	p = (uint32_t *)&(edma_cinfo->edma_ethstats);
+ +
+ +	for (i = 0; i < EDMA_MAX_TRANSMIT_QUEUE; i++) {
+@@ -2802,7 +2802,7 @@
+ +		p++;
+ +	}
+ +
+-+	spin_unlock(&edma_cinfo->stats_lock);
+++	spin_unlock_bh(&edma_cinfo->stats_lock);
+ +}
+ +
+ +static void edma_statistics_timer(unsigned long data)
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/711-dts-ipq4019-add-ethernet-essedma-node.patch b/target/linux/ipq40xx/patches-4.14/711-dts-ipq4019-add-ethernet-essedma-node.patch
+--- a/target/linux/ipq40xx/patches-4.14/711-dts-ipq4019-add-ethernet-essedma-node.patch	2022-04-06 13:14:18.856196428 +0800
++++ b/target/linux/ipq40xx/patches-4.14/711-dts-ipq4019-add-ethernet-essedma-node.patch	2022-04-06 13:15:10.968809402 +0800
+@@ -25,7 +25,7 @@
+  	};
+  
+  	cpus {
+-@@ -618,6 +620,64 @@
++@@ -613,6 +615,64 @@
+  			status = "disabled";
+  		};
+  
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/713-0001-essedma-fixup-ethernet-driver-rx-bug.patch b/target/linux/ipq40xx/patches-4.14/713-0001-essedma-fixup-ethernet-driver-rx-bug.patch
+--- a/target/linux/ipq40xx/patches-4.14/713-0001-essedma-fixup-ethernet-driver-rx-bug.patch	2022-04-06 13:14:18.877196271 +0800
++++ b/target/linux/ipq40xx/patches-4.14/713-0001-essedma-fixup-ethernet-driver-rx-bug.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,144 +0,0 @@
+-From 0bcfbe3c613d6ed8044404bc1cc3c29ff961d89c Mon Sep 17 00:00:00 2001
+-From: Chen Minqiang <ptpt52@gmail.com>
+-Date: Thu, 15 Mar 2018 04:59:57 +0800
+-Subject: [PATCH 1/2] essedma: fixup ethernet driver rx bug
+-
+- - modify the error rx ring full conditions
+- - in rare cases, out of memory allocation failure causes the receive queues stop
+-   we use the timer to re-alloc rx rings under these circumstances
+-
+-Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
+----
+- drivers/net/ethernet/qualcomm/essedma/edma.c     | 51 ++++++++++++++++++++++--
+- drivers/net/ethernet/qualcomm/essedma/edma.h     |  3 ++
+- drivers/net/ethernet/qualcomm/essedma/edma_axi.c |  8 ++++
+- 3 files changed, 58 insertions(+), 4 deletions(-)
+-
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.c b/drivers/net/ethernet/qualcomm/essedma/edma.c
+-index fecc0ba..3f1da93 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma.c
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
+-@@ -530,6 +530,47 @@ static int edma_rx_complete_paged(struct sk_buff *skb, u16 num_rfds, u16 length,
+- 	return sw_next_to_clean;
+- }
+- 
+-+static int edma_rfd_desc_unused(struct edma_rfd_desc_ring *erdr)
+-+{
+-+	if (erdr->sw_next_to_clean > erdr->sw_next_to_fill)
+-+		return erdr->sw_next_to_clean - erdr->sw_next_to_fill - 1;
+-+	return erdr->count + erdr->sw_next_to_clean - erdr->sw_next_to_fill - 1;
+-+}
+-+
+-+void edma_rx_realloc(unsigned long data)
+-+{
+-+	struct edma_per_cpu_queues_info *edma_percpu_info = (struct edma_per_cpu_queues_info *)data;
+-+	struct edma_common_info *edma_cinfo = edma_percpu_info->edma_cinfo;
+-+	s32 status = edma_percpu_info->rx_realloc_status;
+-+
+-+	while (status) {
+-+		int queue_id;
+-+		int ret_count;
+-+		struct edma_rfd_desc_ring *erdr;
+-+
+-+		queue_id = ffs(status) - 1;
+-+		erdr = edma_cinfo->rfd_ring[queue_id];
+-+		ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, edma_rfd_desc_unused(erdr), queue_id);
+-+		if (ret_count == 0) {
+-+			edma_percpu_info->rx_realloc_status &= ~(1 << queue_id);
+-+		}
+-+		status &= ~(1 << queue_id);
+-+	}
+-+
+-+	if (edma_percpu_info->rx_realloc_status) {
+-+		mod_timer(&edma_percpu_info->rx_realloc_timer, jiffies + HZ);
+-+	}
+-+}
+-+
+-+static inline void edma_realloc_timer_start(struct napi_struct *napi, int queue_id)
+-+{
+-+	struct edma_per_cpu_queues_info *edma_percpu_info = container_of(napi,
+-+			struct edma_per_cpu_queues_info, napi);
+-+
+-+	edma_percpu_info->rx_realloc_status |= (1 << queue_id);
+-+	mod_timer(&edma_percpu_info->rx_realloc_timer, jiffies + 5 * HZ); /* restart alloc in 5 secs */
+-+}
+-+
+- /*
+-  * edma_rx_complete()
+-  *	Main api called from the poll function to process rx packets.
+-@@ -754,10 +795,12 @@ static void edma_rx_complete(struct edma_common_info *edma_cinfo,
+- 	erdr->sw_next_to_clean = sw_next_to_clean;
+- 
+- 	/* Refill here in case refill threshold wasn't reached */
+--	if (likely(cleaned_count)) {
+--		ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, cleaned_count, queue_id);
+--		if (ret_count)
+-+	if (edma_rfd_desc_unused(erdr)) {
+-+		ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, edma_rfd_desc_unused(erdr), queue_id);
+-+		if (ret_count) {
+- 			dev_dbg(&pdev->dev, "Not all buffers was reallocated");
+-+			edma_realloc_timer_start(napi, queue_id);
+-+		}
+- 		edma_write_reg(EDMA_REG_RX_SW_CONS_IDX_Q(queue_id),
+- 			      erdr->sw_next_to_clean);
+- 	}
+-@@ -1801,7 +1844,7 @@ int edma_configure(struct edma_common_info *edma_cinfo)
+- 	/* Allocate the RX buffer */
+- 	for (i = 0, j = 0; i < edma_cinfo->num_rx_queues; i++) {
+- 		struct edma_rfd_desc_ring *ring = edma_cinfo->rfd_ring[j];
+--		ret_count = edma_alloc_rx_buf(edma_cinfo, ring, ring->count, j);
+-+		ret_count = edma_alloc_rx_buf(edma_cinfo, ring, edma_rfd_desc_unused(ring), j);
+- 		if (ret_count) {
+- 			dev_dbg(&edma_cinfo->pdev->dev, "not all rx buffers allocated\n");
+- 		}
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.h b/drivers/net/ethernet/qualcomm/essedma/edma.h
+-index 5d6dc73..29c8379 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma.h
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma.h
+-@@ -304,6 +304,8 @@ struct edma_per_cpu_queues_info {
+- 	u32 tx_start; /* tx queue start */
+- 	u32 rx_start; /* rx queue start */
+- 	struct edma_common_info *edma_cinfo; /* edma common info */
+-+	u32 rx_realloc_status;
+-+	struct timer_list rx_realloc_timer;
+- };
+- 
+- /* edma specific common info */
+-@@ -448,6 +450,7 @@ void edma_change_tx_coalesce(int usecs);
+- void edma_change_rx_coalesce(int usecs);
+- void edma_get_tx_rx_coalesce(u32 *reg_val);
+- void edma_clear_irq_status(void);
+-+void edma_rx_realloc(unsigned long data);
+- void ess_set_port_status_speed(struct edma_common_info *edma_cinfo,
+-                                struct phy_device *phydev, uint8_t port_id);
+- #endif /* _EDMA_H_ */
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+-index 81fc1e1..d9f8b52 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+-@@ -1131,6 +1131,11 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 		edma_cinfo->edma_percpu_info[i].rx_status = 0;
+- 		edma_cinfo->edma_percpu_info[i].edma_cinfo = edma_cinfo;
+- 
+-+		edma_cinfo->edma_percpu_info[i].rx_realloc_status = 0;
+-+		init_timer(&edma_cinfo->edma_percpu_info[i].rx_realloc_timer);
+-+		edma_cinfo->edma_percpu_info[i].rx_realloc_timer.function = edma_rx_realloc;
+-+		edma_cinfo->edma_percpu_info[i].rx_realloc_timer.data = (unsigned long)&edma_cinfo->edma_percpu_info[i];
+-+
+- 		/* Request irq per core */
+- 		for (j = edma_cinfo->edma_percpu_info[i].tx_start;
+- 		     j < tx_start[i] + 4; j++) {
+-@@ -1259,7 +1264,10 @@ err_configure:
+- err_rmap_add_fail:
+- 	edma_free_irqs(adapter[0]);
+- 	for (i = 0; i < CONFIG_NR_CPUS; i++)
+-+	{
+- 		napi_disable(&edma_cinfo->edma_percpu_info[i].napi);
+-+		del_timer_sync(&edma_cinfo->edma_percpu_info[i].rx_realloc_timer);
+-+	}
+- err_reset:
+- err_unregister_sysctl_tbl:
+- err_rmap_alloc_fail:
+--- 
+-2.7.4
+-
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/713-0002-essedma-refine-txq-to-be-adaptive-of-cpus-and-netdev.patch b/target/linux/ipq40xx/patches-4.14/713-0002-essedma-refine-txq-to-be-adaptive-of-cpus-and-netdev.patch
+--- a/target/linux/ipq40xx/patches-4.14/713-0002-essedma-refine-txq-to-be-adaptive-of-cpus-and-netdev.patch	2022-04-06 13:14:18.853196451 +0800
++++ b/target/linux/ipq40xx/patches-4.14/713-0002-essedma-refine-txq-to-be-adaptive-of-cpus-and-netdev.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,223 +0,0 @@
+-From 7be0cb35513b07bf74d93d052d57b12e2c654b43 Mon Sep 17 00:00:00 2001
+-From: Chen Minqiang <ptpt52@gmail.com>
+-Date: Thu, 15 Mar 2018 05:04:37 +0800
+-Subject: [PATCH 2/2] essedma: refine txq to be adaptive of cpus and netdev
+-
+- - use 4 queue for each cpu if only 1 netdev
+- - use all 16 txqueue if only 1 netdev
+-
+-Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
+----
+- drivers/net/ethernet/qualcomm/essedma/edma.c     | 22 +++++--------
+- drivers/net/ethernet/qualcomm/essedma/edma.h     |  5 +--
+- drivers/net/ethernet/qualcomm/essedma/edma_axi.c | 40 ++++++++++++++----------
+- 3 files changed, 35 insertions(+), 32 deletions(-)
+-
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.c b/drivers/net/ethernet/qualcomm/essedma/edma.c
+-index 3f1da93..05f9ce9 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma.c
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
+-@@ -22,14 +22,6 @@ extern struct net_device *edma_netdev[EDMA_MAX_PORTID_SUPPORTED];
+- bool edma_stp_rstp;
+- u16 edma_ath_eth_type;
+- 
+--/* edma_skb_priority_offset()
+-- * 	get edma skb priority
+-- */
+--static unsigned int edma_skb_priority_offset(struct sk_buff *skb)
+--{
+--	return (skb->priority >> 2) & 1;
+--}
+--
+- /* edma_alloc_tx_ring()
+-  *	Allocate Tx descriptors ring
+-  */
+-@@ -1042,13 +1034,14 @@ static inline u16 edma_tpd_available(struct edma_common_info *edma_cinfo,
+- /* edma_tx_queue_get()
+-  *	Get the starting number of  the queue
+-  */
+--static inline int edma_tx_queue_get(struct edma_adapter *adapter,
+-+static inline int edma_tx_queue_get(struct edma_common_info *edma_cinfo, struct edma_adapter *adapter,
+- 				   struct sk_buff *skb, int txq_id)
+- {
+- 	/* skb->priority is used as an index to skb priority table
+- 	 * and based on packet priority, correspong queue is assigned.
+-+	 * FIXME we just simple use jiffies for time base balance
+- 	 */
+--	return adapter->tx_start_offset[txq_id] + edma_skb_priority_offset(skb);
+-+	return adapter->tx_start_offset[txq_id] + (jiffies % edma_cinfo->num_txq_per_core_netdev);
+- }
+- 
+- /* edma_tx_update_hw_idx()
+-@@ -1417,8 +1410,9 @@ netdev_tx_t edma_xmit(struct sk_buff *skb,
+- 	}
+- 
+- 	/* this will be one of the 4 TX queues exposed to linux kernel */
+--	txq_id = skb_get_queue_mapping(skb);
+--	queue_id = edma_tx_queue_get(adapter, skb, txq_id);
+-+	/* XXX what if num_online_cpus() > EDMA_CPU_CORES_SUPPORTED */
+-+	txq_id = smp_processor_id() % EDMA_CPU_CORES_SUPPORTED;
+-+	queue_id = edma_tx_queue_get(edma_cinfo, adapter, skb, txq_id);
+- 	etdr = edma_cinfo->tpd_ring[queue_id];
+- 	nq = netdev_get_tx_queue(net_dev, txq_id);
+- 
+-@@ -1899,8 +1893,8 @@ void edma_free_irqs(struct edma_adapter *adapter)
+- 	int i, j;
+- 	int k = ((edma_cinfo->num_rx_queues == 4) ? 1 : 2);
+- 
+--	for (i = 0; i < CONFIG_NR_CPUS; i++) {
+--		for (j = edma_cinfo->edma_percpu_info[i].tx_start; j < (edma_cinfo->edma_percpu_info[i].tx_start + 4); j++)
+-+	for (i = 0; i < num_online_cpus() && i < EDMA_CPU_CORES_SUPPORTED; i++) {
+-+		for (j = edma_cinfo->edma_percpu_info[i].tx_start; j < (edma_cinfo->edma_percpu_info[i].tx_start + edma_cinfo->num_txq_per_core); j++)
+- 			free_irq(edma_cinfo->tx_irq[j], &edma_cinfo->edma_percpu_info[i]);
+- 
+- 		for (j = edma_cinfo->edma_percpu_info[i].rx_start; j < (edma_cinfo->edma_percpu_info[i].rx_start + k); j++)
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.h b/drivers/net/ethernet/qualcomm/essedma/edma.h
+-index 29c8379..2ba43e0 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma.h
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma.h
+-@@ -325,6 +325,7 @@ struct edma_common_info {
+- 	u32 from_cpu; /* from CPU TPD field */
+- 	u32 num_rxq_per_core; /* Rx queues per core */
+- 	u32 num_txq_per_core; /* Tx queues per core */
+-+	u32 num_txq_per_core_netdev; /* Tx queues per core per netdev */
+- 	u16 tx_ring_count; /* Tx ring count */
+- 	u16 rx_ring_count; /* Rx ring*/
+- 	u16 rx_head_buffer_len; /* rx buffer length */
+-@@ -332,7 +333,7 @@ struct edma_common_info {
+- 	u32 page_mode; /* Jumbo frame supported flag */
+- 	u32 fraglist_mode; /* fraglist supported flag */
+- 	struct edma_hw hw; /* edma hw specific structure */
+--	struct edma_per_cpu_queues_info edma_percpu_info[CONFIG_NR_CPUS]; /* per cpu information */
+-+	struct edma_per_cpu_queues_info edma_percpu_info[EDMA_CPU_CORES_SUPPORTED]; /* per cpu information */
+- 	spinlock_t stats_lock; /* protect edma stats area for updation */
+- 
+- 	bool is_single_phy;
+-@@ -401,7 +402,7 @@ struct edma_adapter {
+- 	u32 link_state; /* phy link state */
+- 	u32 phy_mdio_addr; /* PHY device address on MII interface */
+- 	u32 poll_required; /* check if link polling is required */
+--	u32 tx_start_offset[CONFIG_NR_CPUS]; /* tx queue start */
+-+	u32 tx_start_offset[EDMA_CPU_CORES_SUPPORTED]; /* tx queue start */
+- 	u32 default_vlan_tag; /* vlan tag */
+- 	u32 dp_bitmap;
+- 	uint8_t phy_id[MII_BUS_ID_SIZE + 3];
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+-index d9f8b52..5824680 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+-@@ -721,11 +721,7 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 	int i, j, k, err = 0;
+- 	int portid_bmp;
+- 	int idx = 0, idx_mac = 0;
+--
+--	if (CONFIG_NR_CPUS != EDMA_CPU_CORES_SUPPORTED) {
+--		dev_err(&pdev->dev, "Invalid CPU Cores\n");
+--		return -EINVAL;
+--	}
+-+	int netdev_group = 2;
+- 
+- 	if ((num_rxq != 4) && (num_rxq != 8)) {
+- 		dev_err(&pdev->dev, "Invalid RX queue, edma probe failed\n");
+-@@ -749,7 +745,7 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 	/* Initialize the netdev array before allocation
+- 	 * to avoid double free
+- 	 */
+--	for (i = 0 ; i < edma_cinfo->num_gmac ; i++)
+-+	for (i = 0 ; i < EDMA_MAX_PORTID_SUPPORTED; i++)
+- 		edma_netdev[i] = NULL;
+- 
+- 	for (i = 0 ; i < edma_cinfo->num_gmac ; i++) {
+-@@ -770,8 +766,11 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 
+- 	/* Fill ring details */
+- 	edma_cinfo->num_tx_queues = EDMA_MAX_TRANSMIT_QUEUE;
+--	edma_cinfo->num_txq_per_core = (EDMA_MAX_TRANSMIT_QUEUE / 4);
+-+	edma_cinfo->num_txq_per_core = (EDMA_MAX_TRANSMIT_QUEUE / num_online_cpus());
+-+	edma_cinfo->num_txq_per_core_netdev = (EDMA_MAX_TRANSMIT_QUEUE / netdev_group / num_online_cpus());
+- 	edma_cinfo->tx_ring_count = EDMA_TX_RING_SIZE;
+-+	if (edma_cinfo->num_txq_per_core == 0)
+-+		edma_cinfo->num_txq_per_core = 1;
+- 
+- 	/* Update num rx queues based on module parameter */
+- 	edma_cinfo->num_rx_queues = num_rxq;
+-@@ -941,6 +940,13 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 		idx_mac++;
+- 	}
+- 
+-+	if (edma_cinfo->num_gmac == 1) {
+-+		netdev_group = 1;
+-+		edma_cinfo->num_txq_per_core_netdev = (EDMA_MAX_TRANSMIT_QUEUE / netdev_group / num_online_cpus());
+-+	}
+-+	if (edma_cinfo->num_txq_per_core_netdev == 0)
+-+		edma_cinfo->num_txq_per_core_netdev = 1;
+-+
+- 	/* Populate the adapter structure register the netdevice */
+- 	for (i = 0; i < edma_cinfo->num_gmac; i++) {
+- 		int k, m;
+-@@ -948,17 +954,16 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 		adapter[i] = netdev_priv(edma_netdev[i]);
+- 		adapter[i]->netdev = edma_netdev[i];
+- 		adapter[i]->pdev = pdev;
+--		for (j = 0; j < CONFIG_NR_CPUS; j++) {
+--			m = i % 2;
+--			adapter[i]->tx_start_offset[j] =
+--				((j << EDMA_TX_CPU_START_SHIFT) + (m << 1));
+-+		for (j = 0; j < num_online_cpus() && j < EDMA_CPU_CORES_SUPPORTED; j++) {
+-+			m = i % netdev_group;
+-+			adapter[i]->tx_start_offset[j] = j * edma_cinfo->num_txq_per_core + m * edma_cinfo->num_txq_per_core_netdev;
+- 			/* Share the queues with available net-devices.
+- 			 * For instance , with 5 net-devices
+- 			 * eth0/eth2/eth4 will share q0,q1,q4,q5,q8,q9,q12,q13
+- 			 * and eth1/eth3 will get the remaining.
+- 			 */
+- 			for (k = adapter[i]->tx_start_offset[j]; k <
+--			     (adapter[i]->tx_start_offset[j] + 2); k++) {
+-+			     (adapter[i]->tx_start_offset[j] + edma_cinfo->num_txq_per_core_netdev); k++) {
+- 				if (edma_fill_netdev(edma_cinfo, k, i, j)) {
+- 					pr_err("Netdev overflow Error\n");
+- 					goto err_register;
+-@@ -1111,9 +1116,12 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 	/* populate per_core_info, do a napi_Add, request 16 TX irqs,
+- 	 * 8 RX irqs, do a napi enable
+- 	 */
+--	for (i = 0; i < CONFIG_NR_CPUS; i++) {
+-+	for (i = 0; i < num_online_cpus() && i < EDMA_MAX_TRANSMIT_QUEUE; i++) {
+- 		u8 rx_start;
+- 
+-+		tx_mask[i] = (0xFFFF >> (16 - edma_cinfo->num_txq_per_core)) << (i * edma_cinfo->num_txq_per_core);
+-+		tx_start[i] = i * edma_cinfo->num_txq_per_core;
+-+
+- 		edma_cinfo->edma_percpu_info[i].napi.state = 0;
+- 
+- 		netif_napi_add(edma_netdev[0],
+-@@ -1138,7 +1146,7 @@ static int edma_axi_probe(struct platform_device *pdev)
+- 
+- 		/* Request irq per core */
+- 		for (j = edma_cinfo->edma_percpu_info[i].tx_start;
+--		     j < tx_start[i] + 4; j++) {
+-+		     j < tx_start[i] + edma_cinfo->num_txq_per_core; j++) {
+- 			sprintf(&edma_tx_irq[j][0], "edma_eth_tx%d", j);
+- 			err = request_irq(edma_cinfo->tx_irq[j],
+- 					  edma_interrupt,
+-@@ -1263,7 +1271,7 @@ err_configure:
+- #endif
+- err_rmap_add_fail:
+- 	edma_free_irqs(adapter[0]);
+--	for (i = 0; i < CONFIG_NR_CPUS; i++)
+-+	for (i = 0; i < num_online_cpus() && i < EDMA_CPU_CORES_SUPPORTED; i++)
+- 	{
+- 		napi_disable(&edma_cinfo->edma_percpu_info[i].napi);
+- 		del_timer_sync(&edma_cinfo->edma_percpu_info[i].rx_realloc_timer);
+-@@ -1314,7 +1322,7 @@ static int edma_axi_remove(struct platform_device *pdev)
+- 		unregister_netdev(edma_netdev[i]);
+- 
+- 	edma_stop_rx_tx(hw);
+--	for (i = 0; i < CONFIG_NR_CPUS; i++)
+-+	for (i = 0; i < num_online_cpus() && i < EDMA_CPU_CORES_SUPPORTED; i++)
+- 		napi_disable(&edma_cinfo->edma_percpu_info[i].napi);
+- 
+- 	edma_irq_disable(edma_cinfo);
+--- 
+-2.7.4
+-
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/714-essedma-add-fix-for-memory-allocation.patch b/target/linux/ipq40xx/patches-4.14/714-essedma-add-fix-for-memory-allocation.patch
+--- a/target/linux/ipq40xx/patches-4.14/714-essedma-add-fix-for-memory-allocation.patch	1970-01-01 08:00:00.000000000 +0800
++++ b/target/linux/ipq40xx/patches-4.14/714-essedma-add-fix-for-memory-allocation.patch	2022-04-06 13:15:10.984809285 +0800
+@@ -0,0 +1,197 @@
++From 72c050acbc425ef99313d5c2e4c866e25567e569 Mon Sep 17 00:00:00 2001
++From: Rakesh Nair <ranair@codeaurora.org>
++Date: Thu, 8 Jun 2017 14:29:20 +0530
++Subject: [PATCH] CHROMIUM: net: qualcomm: Add fix for memory allocation issues
++
++Added ethtool counters for memory allocation failures accounting.
++Added support to track number of allocation failures that could
++not be fulfilled in the current iteration in the rx descriptor
++field and use the info to allocate in the subsequent iteration.
++
++Change-Id: Ie4fd3b6cf25304e5db2c9247a498791e7e9bb4aa
++Signed-off-by: Rakesh Nair <ranair@codeaurora.org>
++Signed-off-by: Kan Yan <kyan@google.com>
++Reviewed-on: https://chromium-review.googlesource.com/535419
++Reviewed-by: Grant Grundler <grundler@chromium.org>
++---
++ drivers/net/ethernet/qualcomm/essedma/edma.c  | 54 ++++++++++++++-----
++ drivers/net/ethernet/qualcomm/essedma/edma.h  |  2 +
++ .../ethernet/qualcomm/essedma/edma_ethtool.c  |  1 +
++ 3 files changed, 43 insertions(+), 14 deletions(-)
++
++--- a/drivers/net/ethernet/qualcomm/essedma/edma.c
+++++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
++@@ -103,6 +103,9 @@ static int edma_alloc_rx_ring(struct edm
++ 		return -ENOMEM;
++ 	}
++ 
+++	/* Initialize pending_fill */
+++	erxd->pending_fill = 0;
+++
++ 	return 0;
++ }
++ 
++@@ -185,11 +188,8 @@ static int edma_alloc_rx_buf(struct edma
++ 	u16 prod_idx, length;
++ 	u32 reg_data;
++ 
++-	if (cleaned_count > erdr->count) {
++-		dev_err(&pdev->dev, "Incorrect cleaned_count %d",
++-		       cleaned_count);
++-		return -1;
++-	}
+++	if (cleaned_count > erdr->count)
+++		cleaned_count = erdr->count - 1;
++ 
++ 	i = erdr->sw_next_to_fill;
++ 
++@@ -199,6 +199,9 @@ static int edma_alloc_rx_buf(struct edma
++ 
++ 		if (sw_desc->flags & EDMA_SW_DESC_FLAG_SKB_REUSE) {
++ 			skb = sw_desc->skb;
+++
+++			/* Clear REUSE Flag */
+++			sw_desc->flags &= ~EDMA_SW_DESC_FLAG_SKB_REUSE;
++ 		} else {
++ 			/* alloc skb */
++ 			skb = netdev_alloc_skb_ip_align(edma_netdev[0], length);
++@@ -264,6 +267,13 @@ static int edma_alloc_rx_buf(struct edma
++ 	reg_data &= ~EDMA_RFD_PROD_IDX_BITS;
++ 	reg_data |= prod_idx;
++ 	edma_write_reg(EDMA_REG_RFD_IDX_Q(queue_id), reg_data);
+++
+++	/* If we couldn't allocate all the buffers
+++	 * we increment the alloc failure counters
+++	 */
+++	if (cleaned_count)
+++		edma_cinfo->edma_ethstats.rx_alloc_fail_ctr++;
+++
++ 	return cleaned_count;
++ }
++ 
++@@ -534,7 +544,7 @@ static int edma_rx_complete_paged(struct
++  * edma_rx_complete()
++  *	Main api called from the poll function to process rx packets.
++  */
++-static void edma_rx_complete(struct edma_common_info *edma_cinfo,
+++static u16 edma_rx_complete(struct edma_common_info *edma_cinfo,
++ 			    int *work_done, int work_to_do, int queue_id,
++ 			    struct napi_struct *napi)
++ {
++@@ -554,6 +564,7 @@ static void edma_rx_complete(struct edma
++ 	u16 count = erdr->count, rfd_avail;
++ 	u8 queue_to_rxid[8] = {0, 0, 1, 1, 2, 2, 3, 3};
++ 
+++	cleaned_count = erdr->pending_fill;
++ 	sw_next_to_clean = erdr->sw_next_to_clean;
++ 
++ 	edma_read_reg(EDMA_REG_RFD_IDX_Q(queue_id), &data);
++@@ -652,12 +663,13 @@ static void edma_rx_complete(struct edma
++ 						(*work_done)++;
++ 						drop_count = 0;
++ 					}
++-					if (cleaned_count == EDMA_RX_BUFFER_WRITE) {
+++					if (cleaned_count >= EDMA_RX_BUFFER_WRITE) {
++ 						/* If buffer clean count reaches 16, we replenish HW buffers. */
++ 						ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, cleaned_count, queue_id);
++ 						edma_write_reg(EDMA_REG_RX_SW_CONS_IDX_Q(queue_id),
++ 							      sw_next_to_clean);
++ 						cleaned_count = ret_count;
+++						erdr->pending_fill = ret_count;
++ 					}
++ 					continue;
++ 				}
++@@ -730,11 +742,12 @@ static void edma_rx_complete(struct edma
++ 			adapter->stats.rx_bytes += length;
++ 
++ 			/* Check if we reached refill threshold */
++-			if (cleaned_count == EDMA_RX_BUFFER_WRITE) {
+++			if (cleaned_count >= EDMA_RX_BUFFER_WRITE) {
++ 				ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, cleaned_count, queue_id);
++ 				edma_write_reg(EDMA_REG_RX_SW_CONS_IDX_Q(queue_id),
++ 					      sw_next_to_clean);
++ 				cleaned_count = ret_count;
+++				erdr->pending_fill = ret_count;
++ 			}
++ 
++ 			/* At this point skb should go to stack */
++@@ -756,11 +769,17 @@ static void edma_rx_complete(struct edma
++ 	/* Refill here in case refill threshold wasn't reached */
++ 	if (likely(cleaned_count)) {
++ 		ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, cleaned_count, queue_id);
++-		if (ret_count)
++-			dev_dbg(&pdev->dev, "Not all buffers was reallocated");
+++		erdr->pending_fill = ret_count;
+++		if (ret_count) {
+++			if (net_ratelimit())
+++				dev_dbg(&pdev->dev, "Not all buffers was reallocated");
+++		}
+++
++ 		edma_write_reg(EDMA_REG_RX_SW_CONS_IDX_Q(queue_id),
++ 			      erdr->sw_next_to_clean);
++ 	}
+++
+++	return erdr->pending_fill;
++ }
++ 
++ /* edma_delete_rfs_filter()
++@@ -2064,6 +2083,7 @@ int edma_poll(struct napi_struct *napi,
++ 	u32 shadow_rx_status, shadow_tx_status;
++ 	int queue_id;
++ 	int i, work_done = 0;
+++	u16 rx_pending_fill;
++ 
++ 	/* Store the Rx/Tx status by ANDing it with
++ 	 * appropriate CPU RX?TX mask
++@@ -2097,13 +2117,19 @@ int edma_poll(struct napi_struct *napi,
++ 	 */
++ 	while (edma_percpu_info->rx_status) {
++ 		queue_id = ffs(edma_percpu_info->rx_status) - 1;
++-		edma_rx_complete(edma_cinfo, &work_done,
++-			        budget, queue_id, napi);
+++		rx_pending_fill = edma_rx_complete(edma_cinfo, &work_done,
+++						   budget, queue_id, napi);
++ 
++-		if (likely(work_done < budget))
+++		if (likely(work_done < budget)) {
+++			if (rx_pending_fill) {
+++                          	/* reschedule poll() to refill rx buffer deficit */
+++				work_done = budget;
+++				break;
+++			}
++ 			edma_percpu_info->rx_status &= ~(1 << queue_id);
++-		else
+++		} else {
++ 			break;
+++		}
++ 	}
++ 
++ 	/* Clear the status register, to avoid the interrupts to
++--- a/drivers/net/ethernet/qualcomm/essedma/edma.h
+++++ b/drivers/net/ethernet/qualcomm/essedma/edma.h
++@@ -225,6 +225,7 @@ struct edma_ethtool_statistics {
++ 	u32 rx_q6_byte;
++ 	u32 rx_q7_byte;
++ 	u32 tx_desc_error;
+++	u32 rx_alloc_fail_ctr;
++ };
++ 
++ struct edma_mdio_data {
++@@ -362,6 +363,7 @@ struct edma_rfd_desc_ring {
++ 	dma_addr_t dma; /* descriptor ring physical address */
++ 	u16 sw_next_to_fill; /* next descriptor to fill */
++ 	u16 sw_next_to_clean; /* next descriptor to clean */
+++	u16 pending_fill; /* fill pending from previous iteration */
++ };
++ 
++ /* edma_rfs_flter_node - rfs filter node in hash table */
++--- a/drivers/net/ethernet/qualcomm/essedma/edma_ethtool.c
+++++ b/drivers/net/ethernet/qualcomm/essedma/edma_ethtool.c
++@@ -78,6 +78,7 @@ static const struct edma_ethtool_stats e
++ 	{"rx_q6_byte", EDMA_STAT(rx_q6_byte)},
++ 	{"rx_q7_byte", EDMA_STAT(rx_q7_byte)},
++ 	{"tx_desc_error", EDMA_STAT(tx_desc_error)},
+++	{"rx_alloc_fail_ctr", EDMA_STAT(rx_alloc_fail_ctr)},
++ };
++ 
++ #define EDMA_STATS_LEN ARRAY_SIZE(edma_gstrings_stats)
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/715-essedma-Disable-TCP-segmentation-offload-for-IPv6.patch b/target/linux/ipq40xx/patches-4.14/715-essedma-Disable-TCP-segmentation-offload-for-IPv6.patch
+--- a/target/linux/ipq40xx/patches-4.14/715-essedma-Disable-TCP-segmentation-offload-for-IPv6.patch	1970-01-01 08:00:00.000000000 +0800
++++ b/target/linux/ipq40xx/patches-4.14/715-essedma-Disable-TCP-segmentation-offload-for-IPv6.patch	2022-04-06 13:15:10.978809329 +0800
+@@ -0,0 +1,46 @@
++From: Sven Eckelmann <sven@narfation.org>
++Date: Tue, 9 Jun 2020 14:08:44 +0200
++Subject: essedma: Disable TCP segmentation offload for IPv6
++
++It was noticed that the the whole MAC can hang when transferring data from
++one ar40xx port (WAN ports) to the CPU and from the CPU back to another
++ar40xx port (LAN ports). The CPU was doing only NATing in that process.
++
++Usually, the problem first starts with a simple data corruption:
++
++  $ wget https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.4.0-amd64-netinst.iso -O /dev/null
++  ...
++  Connecting to saimei.ftp.acc.umu.se (saimei.ftp.acc.umu.se)|2001:6b0:19::138|:443... connected.
++  ...
++  Read  error at byte 48807936/352321536 (Decryption has failed.). Retrying.
++
++But after a short while, the whole MAC will stop to react. No traffic can
++be transported anymore from the CPU port from/to the AR40xx PHY/switch and
++the MAC has to be resetted.
++
++Signed-off-by: Sven Eckelmann <sven@narfation.org>
++
++--- a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
+++++ b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
++@@ -972,17 +972,14 @@ static int edma_axi_probe(struct platfor
++ 		edma_netdev[i]->features = NETIF_F_HW_CSUM | NETIF_F_RXCSUM
++ 				      | NETIF_F_HW_VLAN_CTAG_TX
++ 				      | NETIF_F_HW_VLAN_CTAG_RX | NETIF_F_SG |
++-				      NETIF_F_TSO | NETIF_F_TSO6 | NETIF_F_GRO;
+++				      NETIF_F_TSO | NETIF_F_GRO;
++ 		edma_netdev[i]->hw_features = NETIF_F_HW_CSUM | NETIF_F_RXCSUM |
++ 				NETIF_F_HW_VLAN_CTAG_RX
++-				| NETIF_F_SG | NETIF_F_TSO | NETIF_F_TSO6 |
++-				NETIF_F_GRO;
+++				| NETIF_F_SG | NETIF_F_TSO | NETIF_F_GRO;
++ 		edma_netdev[i]->vlan_features = NETIF_F_HW_CSUM | NETIF_F_SG |
++-					   NETIF_F_TSO | NETIF_F_TSO6 |
++-					   NETIF_F_GRO;
+++					   NETIF_F_TSO | NETIF_F_GRO;
++ 		edma_netdev[i]->wanted_features = NETIF_F_HW_CSUM | NETIF_F_SG |
++-					     NETIF_F_TSO | NETIF_F_TSO6 |
++-					     NETIF_F_GRO;
+++					     NETIF_F_TSO | NETIF_F_GRO;
++ 
++ #ifdef CONFIG_RFS_ACCEL
++ 		edma_netdev[i]->features |=  NETIF_F_RXHASH | NETIF_F_NTUPLE;
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/851-add-ipq40xx-vqmmc-regulator-driver-to-KConfig.patch b/target/linux/ipq40xx/patches-4.14/851-add-ipq40xx-vqmmc-regulator-driver-to-KConfig.patch
+--- a/target/linux/ipq40xx/patches-4.14/851-add-ipq40xx-vqmmc-regulator-driver-to-KConfig.patch	2022-04-06 13:14:18.851196466 +0800
++++ b/target/linux/ipq40xx/patches-4.14/851-add-ipq40xx-vqmmc-regulator-driver-to-KConfig.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,26 +0,0 @@
+---- a/drivers/regulator/Kconfig
+-+++ b/drivers/regulator/Kconfig
+-@@ -334,6 +334,13 @@ config REGULATOR_HI655X
+- 	  This driver provides support for the voltage regulators of the
+- 	  Hisilicon Hi655x PMIC device.
+- 
+-+config REGULATOR_VQMMC_IPQ4019
+-+	tristate "IPQ4019 VQMMC SD LDO regulator support"
+-+	depends on ARCH_QCOM
+-+	help
+-+	  This driver provides support for the VQMMC LDO I/0
+-+	  voltage regulator of the IPQ4019 SD/EMMC controller.
+-+
+- config REGULATOR_ISL9305
+- 	tristate "Intersil ISL9305 regulator"
+- 	depends on I2C
+---- a/drivers/regulator/Makefile
+-+++ b/drivers/regulator/Makefile
+-@@ -43,6 +43,7 @@ obj-$(CONFIG_REGULATOR_GPIO) += gpio-reg
+- obj-$(CONFIG_REGULATOR_HI6421) += hi6421-regulator.o
+- obj-$(CONFIG_REGULATOR_HI6421V530) += hi6421v530-regulator.o
+- obj-$(CONFIG_REGULATOR_HI655X) += hi655x-regulator.o
+-+obj-$(CONFIG_REGULATOR_VQMMC_IPQ4019) += ipq4019-vqmmc-regulator.o
+- obj-$(CONFIG_REGULATOR_ISL6271A) += isl6271a-regulator.o
+- obj-$(CONFIG_REGULATOR_ISL9305) += isl9305.o
+- obj-$(CONFIG_REGULATOR_LM363X) += lm363x-regulator.o
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/852-ARM-dts-qcom-ipq4019-Add-SDHCI-VQMMC-LDO-regulator-n.patch b/target/linux/ipq40xx/patches-4.14/852-ARM-dts-qcom-ipq4019-Add-SDHCI-VQMMC-LDO-regulator-n.patch
+--- a/target/linux/ipq40xx/patches-4.14/852-ARM-dts-qcom-ipq4019-Add-SDHCI-VQMMC-LDO-regulator-n.patch	2022-04-06 13:14:18.873196301 +0800
++++ b/target/linux/ipq40xx/patches-4.14/852-ARM-dts-qcom-ipq4019-Add-SDHCI-VQMMC-LDO-regulator-n.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,33 +0,0 @@
+-From beae4078c07d3cdc90473a2b35eb0d2b4f3c922c Mon Sep 17 00:00:00 2001
+-From: Robert Marko <robimarko@gmail.com>
+-Date: Sat, 14 Sep 2019 23:13:17 +0200
+-Subject: [PATCH] ARM: dts: qcom: ipq4019: Add SDHCI VQMMC LDO regulator node
+-
+-IPQ4019 has a built in SD/eMMC controller which depends on
+-VQMMC LDO regulator working.
+-Since we have a driver for it lets add the appropriate node for it.
+-
+-Signed-off-by: Robert Marko <robimarko@gmail.com>
+----
+- arch/arm/boot/dts/qcom-ipq4019.dtsi | 10 ++++++++++
+- 1 file changed, 10 insertions(+)
+-
+---- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-+++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -216,6 +216,16 @@
+- 			interrupts = <GIC_SPI 208 IRQ_TYPE_LEVEL_HIGH>;
+- 		};
+- 
+-+		vqmmc: regulator@1948000 {
+-+			compatible = "qcom,ipq4019-vqmmc-regulator";
+-+			reg = <0x01948000 0x4>;
+-+			regulator-name = "vqmmc";
+-+			regulator-min-microvolt = <1500000>;
+-+			regulator-max-microvolt = <3000000>;
+-+			regulator-always-on;
+-+			status = "disabled";
+-+		};
+-+
+- 		blsp_dma: dma@7884000 {
+- 			compatible = "qcom,bam-v1.7.0";
+- 			reg = <0x07884000 0x23000>;
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/853-add-sdhci-msm-node-to-dts.patch b/target/linux/ipq40xx/patches-4.14/853-add-sdhci-msm-node-to-dts.patch
+--- a/target/linux/ipq40xx/patches-4.14/853-add-sdhci-msm-node-to-dts.patch	2022-04-06 13:14:18.858196413 +0800
++++ b/target/linux/ipq40xx/patches-4.14/853-add-sdhci-msm-node-to-dts.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,41 +0,0 @@
+-Subject: [PATCH] ARM: dts: qcom: ipq4019: Add SDHCI controller node
+-Date: Thu, 15 Aug 2019 19:28:23 +0200
+-Message-Id: <20190815172823.12028-1-robimarko@gmail.com>
+-X-Mailer: git-send-email 2.21.0
+-MIME-Version: 1.0
+-Sender: linux-arm-msm-owner@vger.kernel.org
+-Precedence: bulk
+-List-ID: <linux-arm-msm.vger.kernel.org>
+-X-Mailing-List: linux-arm-msm@vger.kernel.org
+-X-Virus-Scanned: ClamAV using ClamSMTP
+-
+-IPQ4019 has a built in SD/eMMC controller which is supported by the
+-SDHCI MSM driver, by the "qcom,sdhci-msm-v4" binding.
+-So lets add the appropriate node for it.
+-
+-Signed-off-by: Robert Marko <robimarko@gmail.com>
+----
+- arch/arm/boot/dts/qcom-ipq4019.dtsi | 12 ++++++++++++
+- 1 file changed, 12 insertions(+)
+- 
+---- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-+++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -226,6 +226,18 @@
+- 			status = "disabled";
+- 		};
+- 
+-+		sdhci: sdhci@7824900 {
+-+			compatible = "qcom,sdhci-msm-v4";
+-+			reg = <0x7824900 0x11c>, <0x7824000 0x800>;
+-+			interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>, <GIC_SPI 138 IRQ_TYPE_LEVEL_HIGH>;
+-+			interrupt-names = "hc_irq", "pwr_irq";
+-+			bus-width = <8>;
+-+			clocks = <&gcc GCC_SDCC1_APPS_CLK>, <&gcc GCC_SDCC1_AHB_CLK>,
+-+				 <&gcc GCC_DCD_XO_CLK>;
+-+			clock-names = "core", "iface", "xo";
+-+			status = "disabled";
+-+		};
+-+
+- 		blsp_dma: dma@7884000 {
+- 			compatible = "qcom,bam-v1.7.0";
+- 			reg = <0x07884000 0x23000>;
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/901-arm-boot-add-dts-files.patch b/target/linux/ipq40xx/patches-4.14/901-arm-boot-add-dts-files.patch
+--- a/target/linux/ipq40xx/patches-4.14/901-arm-boot-add-dts-files.patch	2022-04-06 13:14:18.875196286 +0800
++++ b/target/linux/ipq40xx/patches-4.14/901-arm-boot-add-dts-files.patch	2022-04-06 13:15:10.980809314 +0800
+@@ -10,13 +10,15 @@
+ 
+ --- a/arch/arm/boot/dts/Makefile
+ +++ b/arch/arm/boot/dts/Makefile
+-@@ -697,7 +697,27 @@ dtb-$(CONFIG_ARCH_QCOM) += \
++@@ -697,7 +697,31 @@ dtb-$(CONFIG_ARCH_QCOM) += \
+  	qcom-apq8074-dragonboard.dtb \
+  	qcom-apq8084-ifc6540.dtb \
+  	qcom-apq8084-mtp.dtb \
+ +	qcom-ipq4018-a42.dtb \
+++	qcom-ipq4018-ap120c-ac.dtb \
+ +	qcom-ipq4018-ea6350v3.dtb \
+ +	qcom-ipq4018-eap1300.dtb \
+++	qcom-ipq4018-ens620ext.dtb \
+ +	qcom-ipq4018-ex6100v2.dtb \
+ +	qcom-ipq4018-ex6150v2.dtb \
+ +	qcom-ipq4018-fritz4040.dtb \
+@@ -27,14 +29,16 @@
+  	qcom-ipq4019-ap.dk01.1-c1.dtb \
+ +	qcom-ipq4019-a62.dtb \
+ +	qcom-ipq4019-ap.dk04.1-c1.dtb \
+++	qcom-ipq4019-fritzbox-7530.dtb \
+++	qcom-ipq4019-fritzrepeater-1200.dtb \
+++	qcom-ipq4019-fritzrepeater-3000.dtb \
+++	qcom-ipq4019-linksys_ea8300.dtb \
+ +	qcom-ipq4019-map-ac2200.dtb \
+-+	qcom-ipq4019-r619ac.dtb \
+-+	qcom-ipq4019-r619ac-128m.dtb \
+-+	qcom-ipq4019-hugo-ac1200.dtb \
+-+	qcom-ipq4019-rt-acrh17.dtb \
+++	qcom-ipq4019-qxwlan-e2600ac-c1.dtb \
+++	qcom-ipq4019-qxwlan-e2600ac-c2.dtb \
+ +	qcom-ipq4028-wpj428.dtb \
+ +	qcom-ipq4029-gl-b1300.dtb \
+ +	qcom-ipq4029-mr33.dtb \
+  	qcom-ipq8064-ap148.dtb \
+  	qcom-msm8660-surf.dtb \
+- 	qcom-msm8960-cdp.dtb \
+\ No newline at end of file
++ 	qcom-msm8960-cdp.dtb \
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/901-essedma-disable-default-vlan-tagging.patch b/target/linux/ipq40xx/patches-4.14/901-essedma-disable-default-vlan-tagging.patch
+--- a/target/linux/ipq40xx/patches-4.14/901-essedma-disable-default-vlan-tagging.patch	2022-04-06 13:14:18.872196308 +0800
++++ b/target/linux/ipq40xx/patches-4.14/901-essedma-disable-default-vlan-tagging.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,82 +0,0 @@
+-From 42b508d91b7f51b054f383e3aa42089ccab9300d Mon Sep 17 00:00:00 2001
+-From: Chen Minqiang <ptpt52@gmail.com>
+-Date: Thu, 15 Mar 2018 05:33:46 +0800
+-Subject: [PATCH] essedma: disable default vlan tagging
+-
+-The essedma driver has its own unique take on VLAN management
+-and its configuration. In the original SDK, each VLAN is
+-assigned one virtual ethernet netdev.
+-
+-However, this is non-standard. So, this patch does away
+-with the default_vlan_tag property the driver is using
+-and therefore forces the user to use the kernel's vlan
+-feature.
+-
+-This patch also removes the "qcom,poll_required = <1>;" from
+-the essedma node.
+-
+-Signed-off-by: Christian Lamparter <chunkeey@googlemail.com>
+-Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
+----
+- arch/arm/boot/dts/qcom-ipq4019.dtsi          |  5 ++---
+- drivers/net/ethernet/qualcomm/essedma/edma.c | 14 +++++---------
+- 2 files changed, 7 insertions(+), 12 deletions(-)
+-
+-diff --git a/arch/arm/boot/dts/qcom-ipq4019.dtsi b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-index 3c4617f..7c3af8e 100644
+---- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-+++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+-@@ -598,8 +598,7 @@
+- 			qcom,page-mode = <0>;
+- 			qcom,rx_head_buf_size = <1540>;
+- 			qcom,mdio_supported;
+--			qcom,poll_required = <1>;
+--			qcom,num_gmac = <2>;
+-+			qcom,num_gmac = <1>;
+- 			interrupts = <0  65 IRQ_TYPE_EDGE_RISING
+- 				      0  66 IRQ_TYPE_EDGE_RISING
+- 				      0  67 IRQ_TYPE_EDGE_RISING
+-@@ -637,7 +636,7 @@
+- 
+- 			gmac0: gmac0 {
+- 				local-mac-address = [00 00 00 00 00 00];
+--				vlan_tag = <1 0x1f>;
+-+				vlan_tag = <1 0x3f>;
+- 			};
+- 
+- 			gmac1: gmac1 {
+-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.c b/drivers/net/ethernet/qualcomm/essedma/edma.c
+-index 05f9ce9..a3c0d66 100644
+---- a/drivers/net/ethernet/qualcomm/essedma/edma.c
+-+++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
+-@@ -750,13 +750,11 @@ static void edma_rx_complete(struct edma_common_info *edma_cinfo,
+- 			edma_receive_checksum(rd, skb);
+- 
+- 			/* Process VLAN HW acceleration indication provided by HW */
+--			if (unlikely(adapter->default_vlan_tag != rd->rrd4)) {
+--				vlan = rd->rrd4;
+--				if (likely(rd->rrd7 & EDMA_RRD_CVLAN))
+--					__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vlan);
+--				else if (rd->rrd1 & EDMA_RRD_SVLAN)
+--					__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021AD), vlan);
+--			}
+-+			vlan = rd->rrd4;
+-+			if (likely(rd->rrd7 & EDMA_RRD_CVLAN))
+-+				__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vlan);
+-+			else if (rd->rrd1 & EDMA_RRD_SVLAN)
+-+				__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021AD), vlan);
+- 
+- 			/* Update rx statistics */
+- 			adapter->stats.rx_packets++;
+-@@ -1434,8 +1432,6 @@ netdev_tx_t edma_xmit(struct sk_buff *skb,
+- 	if (!adapter->edma_cinfo->is_single_phy) {
+- 		if (unlikely(skb_vlan_tag_present(skb)))
+- 			flags_transmit |= EDMA_VLAN_TX_TAG_INSERT_FLAG;
+--		else if (adapter->default_vlan_tag)
+--			flags_transmit |= EDMA_VLAN_TX_TAG_INSERT_DEFAULT_FLAG;
+- 	}
+- 
+- 	/* Check and mark checksum offload */
+--- 
+-2.7.4
+-
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/950-add-tx-hw802.11-encapusaltion-offloading-support.patch b/target/linux/ipq40xx/patches-4.14/950-add-tx-hw802.11-encapusaltion-offloading-support.patch
+--- a/target/linux/ipq40xx/patches-4.14/950-add-tx-hw802.11-encapusaltion-offloading-support.patch	2022-04-06 13:14:18.883196226 +0800
++++ b/target/linux/ipq40xx/patches-4.14/950-add-tx-hw802.11-encapusaltion-offloading-support.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,313 +0,0 @@
+-diff --git a/drivers/net/wireless/ath/ath10k/core.c b/drivers/net/wireless/ath/ath10k/core.c
+-index 4f76ba5d78a9..eef0d931dd4e 100644
+---- a/drivers/net/wireless/ath/ath10k/core.c
+-+++ b/drivers/net/wireless/ath/ath10k/core.c
+-@@ -38,18 +38,21 @@
+- static bool uart_print;
+- static bool skip_otp;
+- static bool rawmode;
+-+static bool ethernetmode;
+- 
+- module_param_named(debug_mask, ath10k_debug_mask, uint, 0644);
+- module_param_named(cryptmode, ath10k_cryptmode_param, uint, 0644);
+- module_param(uart_print, bool, 0644);
+- module_param(skip_otp, bool, 0644);
+- module_param(rawmode, bool, 0644);
+-+module_param(ethernetmode, bool, 0644);
+- 
+- MODULE_PARM_DESC(debug_mask, "Debugging mask");
+- MODULE_PARM_DESC(uart_print, "Uart target debugging");
+- MODULE_PARM_DESC(skip_otp, "Skip otp failure for calibration in testmode");
+- MODULE_PARM_DESC(cryptmode, "Crypto mode: 0-hardware, 1-software");
+- MODULE_PARM_DESC(rawmode, "Use raw 802.11 frame datapath");
+-+MODULE_PARM_DESC(ethernetmode, "Use ethernet frame datapath");
+- 
+- static const struct ath10k_hw_params ath10k_hw_params_list[] = {
+- 	{
+-@@ -2390,6 +2393,15 @@
+- 
+- 	/* peer stats are enabled by default */
+- 	set_bit(ATH10K_FLAG_PEER_STATS, &ar->dev_flags);
+-+	
+-+	if (ethernetmode && rawmode) {
+-+		ath10k_err(ar, "ethernet and raw mode cannot co-exist\n");
+-+		status = -EINVAL;
+-+		goto err;
+-+	}
+-+
+-+	ar->ethernetmode = ethernetmode;
+-+
+- 
+- 	status = ath10k_core_probe_fw(ar);
+- 	if (status) {
+-diff --git a/drivers/net/wireless/ath/ath10k/core.h b/drivers/net/wireless/ath/ath10k/core.h
+-index af68eb5d0776..251fb57cbe8f 100644
+---- a/drivers/net/wireless/ath/ath10k/core.h
+-+++ b/drivers/net/wireless/ath/ath10k/core.h
+-@@ -117,6 +117,7 @@
+- 	ATH10K_SKB_F_DELIVER_CAB = BIT(2),
+- 	ATH10K_SKB_F_MGMT = BIT(3),
+- 	ATH10K_SKB_F_QOS = BIT(4),
+-+	ATH10K_SKB_F_HW_80211_ENCAP = BIT(6),
+- };
+- 
+- struct ath10k_skb_cb {
+-@@ -999,6 +1000,8 @@
+- 	u32 ampdu_reference;
+- 
+- 	void *ce_priv;
+-+	
+-+	bool ethernetmode;
+- 
+- 	/* must be last */
+- 	u8 drv_priv[0] __aligned(sizeof(void *));
+-diff --git a/drivers/net/wireless/ath/ath10k/htt_tx.c b/drivers/net/wireless/ath/ath10k/htt_tx.c
+-index a182c0944cc7..0ca0705fe69a 100644
+---- a/drivers/net/wireless/ath/ath10k/htt_tx.c
+-+++ b/drivers/net/wireless/ath/ath10k/htt_tx.c
+-@@ -1144,6 +1144,10 @@  static u8 ath10k_htt_tx_get_tid(struct sk_buff *skb, bool is_eth)
+- 	struct ieee80211_hdr *hdr = (void *)skb->data;
+- 	struct ath10k_skb_cb *cb = ATH10K_SKB_CB(skb);
+- 
+-+	/* Firmware takes care of tid classification for ethernet format */
+-+	if (cb->flags & ATH10K_SKB_F_HW_80211_ENCAP)
+-+		return skb->priority % IEEE80211_QOS_CTL_TID_MASK;
+-+
+- 	if (!is_eth && ieee80211_is_mgmt(hdr->frame_control))
+- 		return HTT_DATA_TX_EXT_TID_MGMT;
+- 	else if (cb->flags & ATH10K_SKB_F_QOS)
+-@@ -1378,15 +1382,17 @@  static int ath10k_htt_tx_32(struct ath10k_htt *htt,
+- 	txbuf_paddr = htt->txbuf.paddr +
+- 		      (sizeof(struct ath10k_htt_txbuf_32) * msdu_id);
+- 
+--	if ((ieee80211_is_action(hdr->frame_control) ||
+--	     ieee80211_is_deauth(hdr->frame_control) ||
+--	     ieee80211_is_disassoc(hdr->frame_control)) &&
+--	     ieee80211_has_protected(hdr->frame_control)) {
+--		skb_put(msdu, IEEE80211_CCMP_MIC_LEN);
+--	} else if (!(skb_cb->flags & ATH10K_SKB_F_NO_HWCRYPT) &&
+--		   txmode == ATH10K_HW_TXRX_RAW &&
+--		   ieee80211_has_protected(hdr->frame_control)) {
+--		skb_put(msdu, IEEE80211_CCMP_MIC_LEN);
+-+	if (!(info->control.flags & IEEE80211_TX_CTRL_HW_80211_ENCAP)) {
+-+		if ((ieee80211_is_action(hdr->frame_control) ||
+-+		     ieee80211_is_deauth(hdr->frame_control) ||
+-+		     ieee80211_is_disassoc(hdr->frame_control)) &&
+-+		    ieee80211_has_protected(hdr->frame_control)) {
+-+			skb_put(msdu, IEEE80211_CCMP_MIC_LEN);
+-+		} else if (!(skb_cb->flags & ATH10K_SKB_F_NO_HWCRYPT) &&
+-+			   txmode == ATH10K_HW_TXRX_RAW &&
+-+			   ieee80211_has_protected(hdr->frame_control)) {
+-+			skb_put(msdu, IEEE80211_CCMP_MIC_LEN);
+-+		}
+- 	}
+- 
+- 	skb_cb->paddr = dma_map_single(dev, msdu->data, msdu->len,
+-diff --git a/drivers/net/wireless/ath/ath10k/mac.c b/drivers/net/wireless/ath/ath10k/mac.c
+-index 83cc8778ca1e..0ea0d0be74a1 100644
+---- a/drivers/net/wireless/ath/ath10k/mac.c
+-+++ b/drivers/net/wireless/ath/ath10k/mac.c
+-@@ -3363,10 +3363,14 @@
+- 			   struct sk_buff *skb)
+- {
+- 	const struct ieee80211_hdr *hdr = (void *)skb->data;
+-+	struct ieee80211_tx_info *tx_info = IEEE80211_SKB_CB(skb);
+- 	__le16 fc = hdr->frame_control;
+- 
+- 	if (!vif || vif->type == NL80211_IFTYPE_MONITOR)
+- 		return ATH10K_HW_TXRX_RAW;
+-+		
+-+	if (tx_info->control.flags & IEEE80211_TX_CTRL_HW_80211_ENCAP)
+-+		return ATH10K_HW_TXRX_ETHERNET;
+- 
+- 	if (ieee80211_is_mgmt(fc))
+- 		return ATH10K_HW_TXRX_MGMT;
+-@@ -3516,6 +3520,15 @@
+- 	struct ath10k_skb_cb *cb = ATH10K_SKB_CB(skb);
+- 
+- 	cb->flags = 0;
+-+	cb->vif = vif;
+-+	cb->txq = txq;
+-+	cb->airtime_est = airtime;
+-+
+-+	if (info->control.flags & IEEE80211_TX_CTRL_HW_80211_ENCAP) {
+-+		cb->flags |= ATH10K_SKB_F_HW_80211_ENCAP;
+-+		return;
+-+	}
+-+
+- 	if (!ath10k_tx_h_use_hwcrypto(vif, skb))
+- 		cb->flags |= ATH10K_SKB_F_NO_HWCRYPT;
+- 
+-@@ -3525,8 +3538,6 @@
+- 	if (ieee80211_is_data_qos(hdr->frame_control))
+- 		cb->flags |= ATH10K_SKB_F_QOS;
+- 
+--	cb->vif = vif;
+--	cb->txq = txq;
+- }
+- 
+- bool ath10k_mac_tx_frm_has_freq(struct ath10k *ar)
+-@@ -3631,7 +3642,10 @@
+- {
+- 	struct ieee80211_hw *hw = ar->hw;
+- 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
+--	int ret;
+-+	int ret;.
+-+	
+-+	if (info->control.flags & IEEE80211_TX_CTRL_HW_80211_ENCAP)
+-+		goto skip_encap;
+- 
+- 	/* We should disable CCK RATE due to P2P */
+- 	if (info->flags & IEEE80211_TX_CTL_NO_CCK_RATE)
+-@@ -3655,6 +3669,7 @@
+- 		}
+- 	}
+- 
+-+skip_encap:
+- 	if (info->flags & IEEE80211_TX_CTL_TX_OFFCHAN) {
+- 		if (!ath10k_mac_tx_frm_has_freq(ar)) {
+- 			ath10k_dbg(ar, ATH10K_DBG_MAC, "queued offchannel skb %pK\n",
+-@@ -3704,6 +3719,7 @@
+- 	int ret;
+- 	unsigned long time_left;
+- 	bool tmp_peer_created = false;
+-+	struct ieee80211_tx_info *info;
+- 
+- 	/* FW requirement: We must create a peer before FW will send out
+- 	 * an offchannel frame. Otherwise the frame will be stuck and
+-@@ -3723,8 +3739,15 @@
+- 		ath10k_dbg(ar, ATH10K_DBG_MAC, "mac offchannel skb %pK\n",
+- 			   skb);
+- 
+--		hdr = (struct ieee80211_hdr *)skb->data;
+--		peer_addr = ieee80211_get_DA(hdr);
+-+		info = IEEE80211_SKB_CB(skb);
+-+
+-+		if (info->control.flags & IEEE80211_TX_CTRL_HW_80211_ENCAP) {
+-+			peer_addr = skb->data;
+-+		} else {
+-+			hdr = (struct ieee80211_hdr *)skb->data;
+-+			peer_addr = ieee80211_get_DA(hdr);
+-+		}
+-+
+- 
+- 		spin_lock_bh(&ar->data_lock);
+- 		vdev_id = ar->scan.vdev_id;
+-@@ -4198,7 +4221,7 @@
+- 	struct ieee80211_vif *vif = info->control.vif;
+- 	struct ieee80211_sta *sta = control->sta;
+- 	struct ieee80211_txq *txq = NULL;
+--	struct ieee80211_hdr *hdr = (void *)skb->data;
+-+	struct ieee80211_hdr *hdr;
+- 	enum ath10k_hw_txrx_mode txmode;
+- 	enum ath10k_mac_tx_path txpath;
+- 	bool is_htt;
+-@@ -4227,14 +4250,20 @@
+- 			return;
+- 		}
+- 
+--		ret = ath10k_htt_tx_mgmt_inc_pending(htt, is_mgmt, is_presp);
+--		if (ret) {
+--			ath10k_dbg(ar, ATH10K_DBG_MAC, "failed to increase tx mgmt pending count: %d, dropping\n",
+--				   ret);
+--			ath10k_htt_tx_dec_pending(htt);
+--			spin_unlock_bh(&ar->htt.tx_lock);
+--			ieee80211_free_txskb(ar->hw, skb);
+--			return;
+-+		if (is_mgmt) {
+-+			hdr = (struct ieee80211_hdr *)skb->data;
+-+			is_presp = ieee80211_is_probe_resp(hdr->frame_control);
+-+
+-+			ret = ath10k_htt_tx_mgmt_inc_pending(htt, is_mgmt,
+-+							     is_presp);
+-+			if (ret) {
+-+				ath10k_dbg(ar, ATH10K_DBG_MAC, "failed to increase tx mgmt pending count: %d, dropping\n",
+-+					   ret);
+-+				ath10k_htt_tx_dec_pending(htt);
+-+				spin_unlock_bh(&ar->htt.tx_lock);
+-+				ieee80211_free_txskb(ar->hw, skb);
+-+				return;
+-+			}
+- 		}
+- 		spin_unlock_bh(&ar->htt.tx_lock);
+- 	}
+-@@ -4929,10 +4958,12 @@
+- static int ath10k_add_interface(struct ieee80211_hw *hw,
+- 				struct ieee80211_vif *vif)
+- {
+-+	struct wireless_dev *wdev = ieee80211_vif_to_wdev(vif);
+- 	struct ath10k *ar = hw->priv;
+- 	struct ath10k_vif *arvif = (void *)vif->drv_priv;
+- 	struct ath10k_peer *peer;
+- 	enum wmi_sta_powersave_param param;
+-+	int hw_encap = 0;
+- 	int ret = 0;
+- 	u32 value;
+- 	int bit;
+-@@ -5023,6 +5054,21 @@
+- 		WARN_ON(1);
+- 		break;
+- 	}
+-+	
+-+	switch (vif->type) {
+-+	case NL80211_IFTYPE_STATION:
+-+	case NL80211_IFTYPE_AP_VLAN:
+-+		if (wdev->netdev->ieee80211_ptr->use_4addr)
+-+			break;
+-+	/* fall through */
+-+	case NL80211_IFTYPE_AP:
+-+		hw_encap = 1;
+-+		break;
+-+	default:
+-+		break;
+-+	}
+-+
+-+	ieee80211_set_hw_80211_encap(vif, ar->ethernetmode & hw_encap);
+- 
+- 	/* Using vdev_id as queue number will make it very easy to do per-vif
+- 	 * tx queue locking. This shouldn't wrap due to interface combinations
+-@@ -8208,6 +8254,8 @@
+- 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+- 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+- 	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+-+	if (ar->ethernetmode)
+-+		ieee80211_hw_set(ar->hw, SUPPORTS_80211_ENCAP);
+- 
+- 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+- 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+-diff --git a/drivers/net/wireless/ath/ath10k/txrx.c b/drivers/net/wireless/ath/ath10k/txrx.c
+-index 39abf8b12903..1d8a6c2571a1 100644
+---- a/drivers/net/wireless/ath/ath10k/txrx.c
+-+++ b/drivers/net/wireless/ath/ath10k/txrx.c
+-@@ -50,6 +50,8 @@  int ath10k_txrx_tx_unref(struct ath10k_htt *htt,
+- 	struct ath10k_skb_cb *skb_cb;
+- 	struct ath10k_txq *artxq;
+- 	struct sk_buff *msdu;
+-+	struct ieee80211_vif *vif;
+-+	u8 flags;
+- 
+- 	ath10k_dbg(ar, ATH10K_DBG_HTT,
+- 		   "htt tx completion msdu_id %u status %d\n",
+-@@ -78,6 +80,9 @@  int ath10k_txrx_tx_unref(struct ath10k_htt *htt,
+- 		artxq->num_fw_queued--;
+- 	}
+- 
+-+	flags = skb_cb->flags;
+-+	vif = skb_cb->vif;
+-+
+- 	ath10k_htt_tx_free_msdu_id(htt, tx_done->msdu_id);
+- 	ath10k_htt_tx_dec_pending(htt);
+- 	if (htt->num_pending_tx == 0)
+-@@ -123,7 +128,11 @@  int ath10k_txrx_tx_unref(struct ath10k_htt *htt,
+- 		info->status.is_valid_ack_signal = true;
+- 	}
+- 
+--	ieee80211_tx_status(htt->ar->hw, msdu);
+-+	if (flags & ATH10K_SKB_F_HW_80211_ENCAP)
+-+		ieee80211_tx_status_8023(htt->ar->hw, vif, msdu);
+-+	else
+-+		ieee80211_tx_status(htt->ar->hw, msdu);
+-+
+- 	/* we do not own the msdu anymore */
+- 
+- 	return 0;
+\ No newline at end of file
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/998-ignore-stats-debug-info.patch b/target/linux/ipq40xx/patches-4.14/998-ignore-stats-debug-info.patch
+--- a/target/linux/ipq40xx/patches-4.14/998-ignore-stats-debug-info.patch	2022-04-06 13:14:18.867196346 +0800
++++ b/target/linux/ipq40xx/patches-4.14/998-ignore-stats-debug-info.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,19 +0,0 @@
+-diff --git a/drivers/base/firmware_class.c b/drivers/base/firmware_class.c
+-index 10a4467..eb8fb94 100644
+---- a/drivers/base/firmware_class.c
+-+++ b/drivers/base/firmware_class.c
+-@@ -1218,10 +1218,10 @@
+- 	if (ret) {
+- 		if (!(opt_flags & FW_OPT_NO_WARN))
+- 			dev_warn(device,
+--				 "Direct firmware load for %s failed with error %d\n",
+--				 name, ret);
+-+				 "Direct firmware load for %s \n",
+-+				 name);
+- 		if (opt_flags & FW_OPT_USERHELPER) {
+--			dev_warn(device, "Falling back to user helper\n");
+-+			dev_warn(device, "Load Wireless ART files\n");
+- 			ret = fw_load_from_user_helper(fw, name, device,
+- 						       opt_flags);
+- 		}
+- 
+diff -Nuar a/target/linux/ipq40xx/patches-4.14/999-fix-m25p-shutdown.patch b/target/linux/ipq40xx/patches-4.14/999-fix-m25p-shutdown.patch
+--- a/target/linux/ipq40xx/patches-4.14/999-fix-m25p-shutdown.patch	2022-04-06 13:14:18.886196203 +0800
++++ b/target/linux/ipq40xx/patches-4.14/999-fix-m25p-shutdown.patch	1970-01-01 08:00:00.000000000 +0800
+@@ -1,34 +0,0 @@
+-diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
+-index 24e1ea3..b1ff69a 100644
+---- a/drivers/mtd/devices/m25p80.c
+-+++ b/drivers/mtd/devices/m25p80.c
+-@@ -313,6 +313,21 @@ static int m25p_remove(struct spi_device *spi)
+- 	return mtd_device_unregister(&flash->spi_nor.mtd);
+- }
+- 
+-+static void m25p_shutdown(struct spi_device *spi)
+-+{
+-+	struct m25p	*flash = spi_get_drvdata(spi);
+-+
+-+	if ((&flash->spi_nor)->addr_width > 3) {
+-+		printk(KERN_INFO "m25p80: exit 4-byte address mode\n");
+-+		flash->command[0] = SPINOR_OP_EX4B;  // exit 4-byte address mode: 0xe9
+-+		spi_write(flash->spi, flash->command, 1);
+-+		flash->command[0] = 0x66;  // enable reset
+-+		spi_write(flash->spi, flash->command, 1);
+-+		flash->command[0] = 0x99;  // reset
+-+		spi_write(flash->spi, flash->command, 1);
+-+	}
+-+}
+-+
+- /*
+-  * Do NOT add to this array without reading the following:
+-  *
+-@@ -387,6 +402,7 @@ static struct spi_driver m25p80_driver = {
+- 	.id_table	= m25p_ids,
+- 	.probe	= m25p_probe,
+- 	.remove	= m25p_remove,
+-+	.shutdown = m25p_shutdown,
+- 
+- 	/* REVISIT: many of these chips have deep power-down modes, which
+- 	 * should clearly be entered on suspend() to minimize power use.
