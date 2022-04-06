@@ -10,7 +10,7 @@ PKG_VERSION:=2.0
 PKG_RELEASE:=19
 
 LUCI_TITLE:=LuCI support for OpenVPN Server
-LUCI_DEPENDS:=+openvpn-openssl +openvpn-easy-rsa +kmod-tun
+LUCI_DEPENDS:=+openvpn-mbedtls +openvpn-easy-rsa +kmod-tun
 LUCI_PKGARCH:=all
 
 include $(TOPDIR)/feeds/luci/luci.mk
