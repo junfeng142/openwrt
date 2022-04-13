@@ -29,22 +29,13 @@
 		wlan2g {
 			label = "hc5761:blue:wlan2g";
 			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
 		};
 
 		wlan5g {
 			label = "hc5761:blue:wlan5g";
 			gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
-		};
-	};
-	
-	gpio_export {
-		compatible = "gpio-export";
-		#size-cells = <0>;
-
-		usbpower {
-			gpio-export,name = "usbpower";
-			gpio-export,output = <1>;
-			gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "phy0tpt";
 		};
 	};
 };
