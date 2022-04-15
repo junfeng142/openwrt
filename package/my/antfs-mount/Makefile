@@ -11,7 +11,7 @@ define Package/antfs-mount
 	SUBMENU:=Filesystem
 	TITLE:=NTFS mount script for AVM NTFS driver
 	PKGARCH:=all
-	DEPENDS:=+kmod-fs-antfs
+	DEPENDS:=+kmod-fs-antfs +kmod-usb-storage-extras +!TARGET_ramips:kmod-usb-storage-uas
 endef
 
 define Build/Configure
