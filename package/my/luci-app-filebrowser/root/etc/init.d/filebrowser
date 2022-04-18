@@ -20,8 +20,9 @@ ROOTPATH=$(config_t_get filebrowser root_path)
 ADMIN=$(config_t_get filebrowser admin)
 LOG_EN=$(config_t_get filebrowser Enabled)
 LOG_DIR=$(echo -n $(uci get filebrowser.@filebrowser[0].log_path) | sed 's/\/$//')
-FILEBROWSER="/usr/bin/filebrowser"
-DB_PATH="/etc/config/filebrowser.db"
+PROJDIR=$(echo -n $(uci get filebrowser.@filebrowser[0].project_path) | sed 's/\/$//')
+FILEBROWSER="$PROJDIR/filebrowser"
+DB_PATH="$PROJDIR/filebrowser.db"
 
 if [ "$LOG_EN" == "false" ];then
     LOGED=""
@@ -42,7 +43,7 @@ start() {
 
     if [ ! -f "$DB_PATH" ];then
         PASSWORD=$($FILEBROWSER hash "$(uci get filebrowser.@filebrowser[0].password)" | sed 's/$/\$/g')
-	    $FILEBROWSER -a $ADDR -p $PORT -r $ROOTPATH -d $DB_PATH $LOGED --username $ADMIN --password "${PASSWORD}" >/dev/null 2>&1 &
+	$FILEBROWSER -a $ADDR -p $PORT -r $ROOTPATH -d $DB_PATH $LOGED --username $ADMIN --password "${PASSWORD}" >/dev/null 2>&1 &
     else
         $FILEBROWSER -a $ADDR -p $PORT -r $ROOTPATH -d $DB_PATH $LOGED >/dev/null 2>&1 &
     fi
@@ -50,4 +51,10 @@ start() {
 
 stop() {
 	ps -w | grep -v grep | grep "filebrowser -a" | awk '{print $1}' | xargs kill -9 >/dev/null 2>&1 &
+}
+
+restart() {
+    stop
+    sleep 2
+    start
 }

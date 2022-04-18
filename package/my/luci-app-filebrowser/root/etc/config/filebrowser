@@ -1,4 +1,3 @@
-
 config filebrowser
 	option enable '0'
 	option addrtype 'lan'
@@ -6,5 +5,5 @@ config filebrowser
 	option root_path '/'
 	option admin 'admin'
 	option password 'admin'
+	option project_path '/usr/bin'
 	option Enabled 'true'
-

@@ -52,6 +52,11 @@ o.rmempty = false
 o = s:taboption("server", DummyValue, "")
 o.title = "<p style=\"font-size:14px;font-weight:bold\">" .. translate("Update binary files manually") .. "</p>"
 
+o = s:taboption("server", Value, "project_path")
+o.title = translate("Project storage directory")
+o.default = "/usr/bin"
+o.rmempty = false
+
 o = s:taboption("server", FileUpload, "_upload")
 o.title = translate("Choose local file:")
 o.template = "filebrowser/upload"
@@ -60,7 +65,8 @@ um = s:taboption("server", DummyValue, "")
 um.template = "filebrowser/tip"
 
 local fd
-local dpath = "/usr/bin/filebrowser"
+local dir = util.trim(util.exec("uci get filebrowser.@filebrowser[0].project_path"):gsub("[ \t\n\r/]+$", ""))
+local dpath = dir .. "/filebrowser"
 local tempath = "/tmp/filebrowser-tmp/"
 local filepath = ""
 
