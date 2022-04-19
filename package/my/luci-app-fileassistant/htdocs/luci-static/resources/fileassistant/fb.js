@@ -176,7 +176,7 @@ String.prototype.replaceAll = function(search, replacement) {
             icon: (f[1][0] === 'd') ? "folder-icon" : (isLink ? "link-icon" : "file-icon")
           };
 		  
-		  var install_btn = '<button class="cbi-button cbi-button-install" style="visibility: hidden;">安装</button>';
+		  var install_btn = '<button class="cbi-button cbi-button-install" style="visibility: hidden;">Install</button>';
           var index= o.filename.lastIndexOf(".");
 		  var ext = o.filename.substr(index+1);
           if (ext === 'ipk') {
