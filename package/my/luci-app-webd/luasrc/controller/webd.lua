@@ -5,7 +5,8 @@ function index()
 		return
 	end
 
-	entry({"admin", "nas", "webd"},cbi("webd"),_("Webd Netdisk"),99)
+    entry({"admin", "nas"}, firstchild(), "NAS", 44).dependent = false
+	entry({"admin", "nas", "webd"},cbi("webd"),_("Webd Netdisk"),9).dependent=false
 	entry({"admin", "nas", "webd", "status"}, call("act_status")).leaf = true
 end
 
