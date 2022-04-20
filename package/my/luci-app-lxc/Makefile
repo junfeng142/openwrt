@@ -16,6 +16,6 @@ endef
 
 PKG_MAINTAINER:=Petar Koretic <petar.koretic@sartura.hr>
 
-include ../../luci.mk
+include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
