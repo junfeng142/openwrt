@@ -4,7 +4,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=webd
-PKG_VERSION:=20220127
+PKG_VERSION:=20220327
 PKG_RELEASE:=$(AUTORELESE)
 
 include $(INCLUDE_DIR)/package.mk
@@ -66,6 +66,9 @@ ifeq ($(ARCH),mips)
 	endif
 	ifeq ($(BOARD),bcm63xx)
 		TARGET_ARCH:=mips_mips32.brcm63xx-uClibc
+	endif
+    ifeq ($(BOARD),ar71xx)
+		TARGET_ARCH:=mips_24kc.ath79
 	endif
 endif
 
