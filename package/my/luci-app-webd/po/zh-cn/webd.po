@@ -58,6 +58,9 @@ msgstr "回收站"
 msgid "Automatically create recycle bin directory"
 msgstr "允许自动创建回收站目录"
 
+msgid "User Settings"
+msgstr "用户设置"
+
 msgid "Set the username, password and permissions. Maximum for 2 accounts"
 msgstr "设置用户名和密码, 以及单个用户的权限, 最多支持设置两个账号"
 
@@ -76,5 +79,9 @@ msgstr "删除或移动文件"
 msgid "Show hidden files"
 msgstr "显示隐藏文件"
 
-msgid "Play Media"
+msgid "Play media"
 msgstr "网页播放媒体"
+
+msgid "Open Web-URL"
+msgstr "打开管理界面"
+
