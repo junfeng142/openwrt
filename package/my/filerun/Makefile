@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=filerun
-PKG_VERSION:=2020_11_21
-PKG_RELEASE:=20200514
+PKG_VERSION:=1.0.1
+PKG_RELEASE:=20220503
 
 PKG_FILE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_URL:=http://www.filerun.com/download-latest
@@ -57,7 +57,7 @@ define Package/filerun/install
 	$(INSTALL_DIR) $(1)/www/filerun
 	$(CP) \
 		$(PKG_BUILD_DIR)/{a,cron,css,customizables,images,js,logout,oauth2,ocs,oembed,panel,sounds,sso,system,weblinks,wl} \
-		$(PKG_BUILD_DIR)/{api.php,dav.php,favicon.ico,guest.php,index.php,initial_version.txt,recommended.web.config,remote.php,status.php,t.php} \
+		$(PKG_BUILD_DIR)/{api.php,dav.php,guest.php,index.php,initial_version.txt,recommended.web.config,remote.php,status.php,t.php} \
 		$(1)/www/filerun
 	find $(1)/www/filerun -type d -exec chmod +x {} \;
 endef
