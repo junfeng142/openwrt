@@ -13,7 +13,7 @@ PKG_RELEASE:=1
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=b73d278
 PKG_SOURCE_URL:=https://github.com/filebrowser/filebrowser
-PKG_MIRROR_HASH:=7ab5e1acbea7dcd18051350dbd23761004d13e843c19bc3ce60af1273943bb62
+PKG_MIRROR_HASH:=66b9df31f98bec22715a7fe9ca73962c1e5a5c1b3bcfb99fd0ac1703118ee4c8
 
 PKG_LICENSE:=Apache-2.0
 PKG_LICENSE_FILES:=LICENSE.txt
@@ -68,9 +68,6 @@ endif
 
 define Build/Compile
 ( \
-  cd $(PKG_BUILD_DIR) ; \
-  rm -rf frontend/dist ; \
-  rm -f http/rice-box.go ; \
   cd $(PKG_BUILD_DIR)/frontend ; \
   npm ci; \
   npm run lint ; \
