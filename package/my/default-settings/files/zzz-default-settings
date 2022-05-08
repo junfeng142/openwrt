@@ -29,6 +29,9 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/hd_idle.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aliyundrive-webdav.lua
 sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aliyundrive-webdav/aliyundrive-webdav_log.htm
 sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aliyundrive-webdav/aliyundrive-webdav_status.htm
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aliyundrive-fuse.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aliyundrive-fuse/aliyundrive-fuse_log.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aliyundrive-fuse/aliyundrive-fuse_status.htm
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/ksmbd.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/samba.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/samba4.lua
