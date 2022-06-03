@@ -18,12 +18,6 @@ uci commit firewall
 uci set fstab.@global[0].anon_mount=1
 uci commit fstab
 
-uci del uhttpd.main.cgi_prefix 2>/dev/null
-uci del uhttpd.main.index_page 2>/dev/null
-uci set uhttpd.main.lua_prefix='/cgi-bin/luci'
-uci set uhttpd.main.lua_handler='/usr/lib/lua/luci/sgi/uhttpd.lua'
-uci commit uhttpd
-
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
