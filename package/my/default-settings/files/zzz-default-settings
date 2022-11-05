@@ -18,8 +18,6 @@ uci commit firewall
 uci set fstab.@global[0].anon_mount=1
 uci commit fstab
 
-chomd +x /etc/init.d/*
-
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
@@ -72,4 +70,3 @@ rm -rf /tmp/luci-modulecache/
 rm -f /tmp/luci-indexcache
 
 exit 0
-
