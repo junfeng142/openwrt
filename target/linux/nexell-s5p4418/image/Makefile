@@ -7,10 +7,22 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
+define Image/BuildKernel
+	$(foreach k,$(filter zImage Image,$(KERNELNAME)), \
+		cp $(KDIR)/$(KERNELNAME) $(BIN_DIR)/$(IMG_PREFIX)-$(k) \
+	)
+endef
+
 define Image/Build/Initramfs
-	$(CP) $(KERNEL_BUILD_DIR)/*image $(BIN_DIR)/*image
-	$(CP) $(KERNEL_BUILD_DIR)/*dtb $(BIN_DIR)/$(IMG_PREFIX)-dtb
-    $(CP) $(KERNEL_BUILD_DIR)/rootfs.* $(BIN_DIR)/rootfs.*
+	$(foreach k,$(filter zImage Image,$(KERNELNAME)), \
+		cp $(KDIR)/$(k)-initramfs $(BIN_DIR)/$(IMG_PREFIX)-$(k)-initramfs \
+	)
+endef
+
+define Image/Build
+	$(call Image/Build/$(1))
+	dd if=$(KDIR)/root.$(1) bs=128k conv=sync | \
+		gzip -9n >$(BIN_DIR)/$(IMG_PREFIX)-root.$(1).gz
 endef
 
 $(eval $(call BuildImage))
