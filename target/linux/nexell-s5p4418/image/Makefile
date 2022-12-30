@@ -8,13 +8,13 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
 define Image/BuildKernel
-	$(foreach k,$(filter zImage,$(KERNELNAME)), \
-		cp $(KDIR)/$(KERNELNAME) $(BIN_DIR)/$(IMG_PREFIX)-$(k) \
+	$(foreach k,$(filter zImage Image,$(KERNELNAME)), \
+		cp $(KDIR)/$(KERNELNAME) $(BIN_DIR)/ \
 	)
 endef
 
 define Image/Build/Initramfs
-	$(foreach k,$(filter zImage,$(KERNELNAME)), \
+	$(foreach k,$(filter zImage Image,$(KERNELNAME)), \
 		cp $(KDIR)/$(k)-initramfs $(BIN_DIR)/$(IMG_PREFIX)-$(k)-initramfs \
 	)
 endef
