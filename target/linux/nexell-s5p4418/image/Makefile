@@ -9,13 +9,7 @@ include $(INCLUDE_DIR)/image.mk
 
 define Image/BuildKernel
 	$(foreach k,$(filter zImage Image,$(KERNELNAME)), \
-		cp $(KDIR)/$(KERNELNAME) $(BIN_DIR)/ \
-	)
-endef
-
-define Image/Build/Initramfs
-	$(foreach k,$(filter zImage Image,$(KERNELNAME)), \
-		cp $(KDIR)/$(k)-initramfs $(BIN_DIR)/$(IMG_PREFIX)-$(k)-initramfs \
+		cp $(KDIR)/$(k) $(BIN_DIR)/$(IMG_PREFIX)-$(k) \
 	)
 endef
 
