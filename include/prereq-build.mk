@@ -26,49 +26,43 @@ $(eval $(call TestHostCommand,proper-umask, \
 	Please build with umask 022 - other values produce broken packages, \
 	umask | grep -xE 0?0[012][012]))
 
+ifndef IB
 $(eval $(call SetupHostCommand,gcc, \
-	Please install the GNU C Compiler (gcc) 4.8 or later, \
-	$(CC) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
-	gcc -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
-	gcc48 --version | grep gcc, \
-	gcc49 --version | grep gcc, \
-	gcc5 --version | grep gcc, \
-	gcc6 --version | grep gcc, \
-	gcc7 --version | grep gcc, \
-	gcc8 --version | grep gcc, \
-	gcc9 --version | grep gcc, \
+	Please install the GNU C Compiler (gcc) 6 or later, \
+	$(CC) -dumpversion | grep -E '^([6-9]\.?|1[0-9]\.?)', \
+	gcc -dumpversion | grep -E '^([6-9]\.?|1[0-9]\.?)', \
 	gcc --version | grep -E 'Apple.(LLVM|clang)' ))
 
 $(eval $(call TestHostCommand,working-gcc, \
-	\nPlease reinstall the GNU C Compiler (4.8 or later) - \
+	Please reinstall the GNU C Compiler (6 or later) - \
 	it appears to be broken, \
 	echo 'int main(int argc, char **argv) { return 0; }' | \
 		gcc -x c -o $(TMP_DIR)/a.out -))
 
 $(eval $(call SetupHostCommand,g++, \
-	Please install the GNU C++ Compiler (g++) 4.8 or later, \
-	$(CXX) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
-	g++ -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
-	g++48 --version | grep g++, \
-	g++49 --version | grep g++, \
-	g++5 --version | grep g++, \
-	g++6 --version | grep g++, \
-	g++7 --version | grep g++, \
-	g++8 --version | grep g++, \
-	g++9 --version | grep g++, \
+	Please install the GNU C++ Compiler (g++) 6 or later, \
+	$(CXX) -dumpversion | grep -E '^([6-9]\.?|1[0-9]\.?)', \
+	g++ -dumpversion | grep -E '^([6-9]\.?|1[0-9]\.?)', \
 	g++ --version | grep -E 'Apple.(LLVM|clang)' ))
 
 $(eval $(call TestHostCommand,working-g++, \
-	\nPlease reinstall the GNU C++ Compiler (4.8 or later) - \
+	Please reinstall the GNU C++ Compiler (6 or later) - \
 	it appears to be broken, \
 	echo 'int main(int argc, char **argv) { return 0; }' | \
 		g++ -x c++ -o $(TMP_DIR)/a.out - -lstdc++ && \
 		$(TMP_DIR)/a.out))
 
-$(eval $(call TestHostCommand,ncurses, \
+$(eval $(call RequireCHeader,ncurses.h, \
 	Please install ncurses. (Missing libncurses.so or ncurses.h), \
-	echo 'int main(int argc, char **argv) { initscr(); return 0; }' | \
-		gcc -include ncurses.h -x c -o $(TMP_DIR)/a.out - -lncurses))
+	initscr(), -lncurses))
+
+$(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
+	git --exec-path | xargs -I % -- grep -q -- --recursive %/git-submodule, \
+	git submodule --help | grep -- --recursive))
+
+$(eval $(call SetupHostCommand,rsync,Please install 'rsync', \
+	rsync --version </dev/null))
+endif # IB
 
 ifeq ($(HOST_OS),Linux)
   zlib_link_flags := -Wl,-Bstatic -lz -Wl,-Bdynamic
