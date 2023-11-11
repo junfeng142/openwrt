@@ -1017,7 +1017,7 @@ config BUSYBOX_DEFAULT_FEATURE_AWK_GNU_EXTENSIONS
 	default y
 config BUSYBOX_DEFAULT_CMP
 	bool
-	default y
+	default n
 config BUSYBOX_DEFAULT_DIFF
 	bool
 	default n
