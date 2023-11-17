@@ -1,20 +1,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ubus
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/ubus.git
-PKG_SOURCE_DATE:=2021-07-01
-PKG_SOURCE_VERSION:=38c7fdd8991366cd2f9ccbc47625f9b51b1d318a
-PKG_MIRROR_HASH:=5ff9baa2ba3c7b2b53a477ed2a0f3dd8828051389f3d759cf5a694fbccc4c05b
-PKG_ABI_VERSION:=20210603
+PKG_SOURCE_DATE:=2021-06-03
+PKG_SOURCE_VERSION:=a8cf678230ed163ff7a07eb1e2c872f9d655460a
+PKG_MIRROR_HASH:=aee34cd1c1aa0f1a459dda0b2c6cbdb6b66e67147ebd1bcbb2a16a2ef923d008
+PKG_ABI_VERSION:=$(call abi_version_str,$(PKG_SOURCE_DATE))
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=LGPL-2.1
 PKG_LICENSE_FILES:=
-
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
+
+PKG_FLAGS := nonshared
+PKG_ASLR_PIE_REGULAR:=1
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -31,6 +33,7 @@ define Package/ubusd
   CATEGORY:=Base system
   TITLE:=OpenWrt RPC daemon
   DEPENDS:=+libubox +libblobmsg-json
+  USERID:=ubus=81:ubus=81
 endef
 
 define Package/libubus
@@ -51,7 +54,7 @@ endef
 TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include -flto
 TARGET_LDFLAGS += -flto
 
-CMAKE_OPTIONS = \
+CMAKE_OPTIONS += \
 	-DLUAPATH=/usr/lib/lua \
 	-DABIVERSION="$(PKG_ABI_VERSION)"
 
