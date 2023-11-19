@@ -1,5 +1,5 @@
 include $(INCLUDE_DIR)/cmake.mk
-include ninja.mk
+include ./ninja.mk
 
 CMAKE_HOST_OPTIONS += -DCMAKE_GENERATOR="Ninja"
 CMAKE_OPTIONS += -DCMAKE_GENERATOR="Ninja"
