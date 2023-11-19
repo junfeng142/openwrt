@@ -22,6 +22,8 @@
 # MESON_HOST_ARGS+=-Dfoo -Dbar=baz
 # MESON_HOST_VARS+=FOO=bar
 
+include $(TOPDIR)/tools/ninja/ninja.mk
+
 MESON_DIR:=$(STAGING_DIR_HOST)/lib/meson
 
 MESON_HOST_BUILD_DIR:=$(HOST_BUILD_DIR)/openwrt-build
