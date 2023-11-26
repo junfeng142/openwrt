@@ -1,4 +1,4 @@
 src-git packages https://github.com/junfeng142/packages.git;openwrt-21.02
-src-git luci https://github.com/x-wrt/luci.git;21.10
+src-git luci https://github.com/Lienol/openwrt-luci.git;21.02
 src-git routing https://git.openwrt.org/feed/routing.git
 
