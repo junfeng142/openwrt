@@ -47,7 +47,7 @@ DEFAULT_PACKAGES.router:=\
 	ppp \
 	ppp-mod-pppoe \
 	block-mount coremark wget curl kmod-nf-nathelper kmod-nf-nathelper-extra kmod-ipt-raw kmod-tun\
-	ca-certificates default-settings luci luci-app-ddns luci-app-upnp luci-app-ramfree luci-app-turboacc \
+	ca-certificates default-settings luci luci-app-ddns luci-app-upnp luci-app-ramfree \
 	luci-newapi ddns-scripts_aliyun ddns-scripts_dnspod 
 
 ifneq ($(DUMP),)
