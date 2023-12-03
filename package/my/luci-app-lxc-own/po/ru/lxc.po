@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2022-03-30 01:31+0000\n"
-"Last-Translator: Anton Kikin <a.a.kikin@gmail.com>\n"
+"PO-Revision-Date: 2021-06-28 11:33+0000\n"
+"Last-Translator: Artem <KovalevArtem.ru@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/openwrt/"
 "luciapplicationslxc/ru/>\n"
 "Language: ru\n"
@@ -9,17 +9,26 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.12-dev\n"
+"X-Generator: Weblate 4.7.1-dev\n"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:18
 msgid ""
-"<b>Please note:</b> For LXC Containers you need a custom OpenWrt image.<br />"
+"<b>Please note:</b> LXC Containers require features not available on OpenWrt "
+"images for devices with small flash.<br />"
 msgstr ""
+"<b>Пожалуйста, обратите внимание:</b> LXC-контейнеры требуют функций, "
+"недоступных в образах OpenWrt для устройств с небольшой флэш-памятью<br />"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:29
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:47
 msgid "Actions"
 msgstr "Действия"
+
+#: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:19
+msgid "Also you may want to install 'kmod-veth' for optional network support."
+msgstr ""
+"Кроме того, вы можете установить \"kmod-veth\" для дополнительной поддержки "
+"сети."
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:23
 msgid "Available Containers"
@@ -50,9 +59,6 @@ msgid ""
 "Enable optional SSL encryption support. This requires additional packages "
 "like 'wget', 'ca-certificates', 'gnupg' and 'gnupg-utils'."
 msgstr ""
-"Включить необязательную поддержку шифрования SSL. Это требуется некоторым "
-"дополнительным пакетам, например: 'wget', 'ca-certificates', 'gnupg' и "
-"'gnupg-utils'."
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:50
 msgid "Enter new name"
@@ -65,6 +71,10 @@ msgstr ""
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:42
 msgid "Free Temp Threshold"
 msgstr ""
+
+#: applications/luci-app-lxc/root/usr/share/rpcd/acl.d/luci-app-lxc.json:3
+msgid "Grant UCI access for luci-app-lxc"
+msgstr "Предоставить UCI доступ для luci-app-lxc"
 
 #: applications/luci-app-lxc/luasrc/controller/lxc.lua:31
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:17
@@ -111,10 +121,3 @@ msgstr "Остановить"
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:46
 msgid "Template"
 msgstr "Шаблон"
-
-#: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:19
-msgid ""
-"The image should include at least support for 'kernel cgroups', 'kernel "
-"namespaces' and 'miscellaneous LXC related options' plus 'kmod-veth' for "
-"optional network support."
-msgstr ""
