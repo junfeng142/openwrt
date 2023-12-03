@@ -10,7 +10,7 @@ FS_MENU:=Filesystems
 define KernelPackage/fs-9p
   SUBMENU:=$(FS_MENU)
   TITLE:=Plan 9 Resource Sharing Support
-  DEPENDS:=+kmod-9pnet +LINUX_6_1:kmod-fs-netfs
+  DEPENDS:=+kmod-9pnet
   KCONFIG:=\
 	CONFIG_9P_FS \
 	CONFIG_9P_FS_POSIX_ACL=n \
@@ -70,6 +70,7 @@ define KernelPackage/fs-btrfs
   DEPENDS:=+kmod-lib-crc32c +kmod-lib-lzo +kmod-lib-zlib-inflate +kmod-lib-zlib-deflate +kmod-lib-raid6 +kmod-lib-xor +kmod-lib-zstd
   KCONFIG:=\
 	CONFIG_BTRFS_FS \
+	CONFIG_BTRFS_FS_POSIX_ACL=n \
 	CONFIG_BTRFS_FS_CHECK_INTEGRITY=n
   FILES:=\
 	$(LINUX_DIR)/fs/btrfs/btrfs.ko
@@ -83,30 +84,6 @@ endef
 $(eval $(call KernelPackage,fs-btrfs))
 
 
-define KernelPackage/fs-smbfs-common
-  SUBMENU:=$(FS_MENU)
-  TITLE:=SMBFS common dependencies support
-  HIDDEN:=1
-  KCONFIG:=\
-	CONFIG_SMBFS_COMMON@lt6.1 \
-	CONFIG_SMBFS@ge6.1
-  DEPENDS:= \
-	+(LINUX_5_4||LINUX_5_10):kmod-crypto-arc4 \
-	+(LINUX_5_4||LINUX_5_10):kmod-crypto-md4
-  FILES:= \
-	$(LINUX_DIR)/fs/smbfs_common/cifs_arc4.ko@lt6.1 \
-	$(LINUX_DIR)/fs/smbfs_common/cifs_md4.ko@lt6.1 \
-	$(LINUX_DIR)/fs/smb/common/cifs_arc4.ko@ge6.1 \
-	$(LINUX_DIR)/fs/smb/common/cifs_md4.ko@ge6.1
-endef
-
-define KernelPackage/fs-smbfs-common/description
- Kernel module dependency for CIFS or SMB_SERVER support
-endef
-
-$(eval $(call KernelPackage,fs-smbfs-common))
-
-
 define KernelPackage/fs-cifs
   SUBMENU:=$(FS_MENU)
   TITLE:=CIFS support
@@ -114,25 +91,21 @@ define KernelPackage/fs-cifs
 	CONFIG_CIFS \
 	CONFIG_CIFS_DFS_UPCALL=n \
 	CONFIG_CIFS_UPCALL=n
-  FILES:= \
-	$(LINUX_DIR)/fs/cifs/cifs.ko@lt6.1 \
-	$(LINUX_DIR)/fs/smb/client/cifs.ko@ge6.1
+  FILES:=$(LINUX_DIR)/fs/cifs/cifs.ko
   AUTOLOAD:=$(call AutoLoad,30,cifs)
   $(call AddDepends/nls)
   DEPENDS+= \
-    +kmod-fs-smbfs-common \
+    +kmod-crypto-md4 \
     +kmod-crypto-md5 \
     +kmod-crypto-sha256 \
     +kmod-crypto-sha512 \
     +kmod-crypto-cmac \
     +kmod-crypto-hmac \
+    +kmod-crypto-arc4 \
     +kmod-crypto-aead \
     +kmod-crypto-ccm \
     +kmod-crypto-ecb \
-    +kmod-crypto-des \
-    +(LINUX_5_15||LINUX_6_1):kmod-asn1-decoder \
-    +(LINUX_5_15||LINUX_6_1):kmod-oid-registry \
-    +(LINUX_5_15||LINUX_6_1):kmod-dnsresolver
+    +kmod-crypto-des
 endef
 
 define KernelPackage/fs-cifs/description
@@ -270,22 +243,18 @@ $(eval $(call KernelPackage,fs-f2fs))
 define KernelPackage/fs-fscache
   SUBMENU:=$(FS_MENU)
   TITLE:=General filesystem local cache manager
-  DEPENDS:=+kmod-fs-netfs
+  DEPENDS:=
   KCONFIG:=\
-	CONFIG_FSCACHE \
+	CONFIG_FSCACHE=m \
 	CONFIG_FSCACHE_STATS=y \
 	CONFIG_FSCACHE_HISTOGRAM=n \
 	CONFIG_FSCACHE_DEBUG=n \
 	CONFIG_FSCACHE_OBJECT_LIST=n \
-	CONFIG_CACHEFILES \
+	CONFIG_CACHEFILES=y \
 	CONFIG_CACHEFILES_DEBUG=n \
-	CONFIG_CACHEFILES_HISTOGRAM=n \
-	CONFIG_CACHEFILES_ERROR_INJECTION=n@ge5.17 \
-	CONFIG_CACHEFILES_ONDEMAND=n@ge5.19
-  FILES:= \
-	$(LINUX_DIR)/fs/fscache/fscache.ko \
-	$(LINUX_DIR)/fs/cachefiles/cachefiles.ko
-  AUTOLOAD:=$(call AutoLoad,29,fscache cachefiles)
+	CONFIG_CACHEFILES_HISTOGRAM=n
+  FILES:=$(LINUX_DIR)/fs/fscache/fscache.ko
+  AUTOLOAD:=$(call AutoLoad,29,fscache)
 endef
 
 $(eval $(call KernelPackage,fs-fscache))
@@ -389,18 +358,6 @@ endef
 $(eval $(call KernelPackage,fs-msdos))
 
 
-define KernelPackage/fs-netfs
-  SUBMENU:=$(FS_MENU)
-  TITLE:=Network Filesystems support
-  DEPENDS:=@(LINUX_5_15||LINUX_6_1)
-  KCONFIG:= CONFIG_NETFS_SUPPORT
-  FILES:=$(LINUX_DIR)/fs/netfs/netfs.ko
-  AUTOLOAD:=$(call AutoLoad,28,netfs)
-endef
-
-$(eval $(call KernelPackage,fs-netfs))
-
-
 define KernelPackage/fs-nfs
   SUBMENU:=$(FS_MENU)
   TITLE:=NFS filesystem client support
@@ -424,17 +381,10 @@ $(eval $(call KernelPackage,fs-nfs))
 define KernelPackage/fs-nfs-common
   SUBMENU:=$(FS_MENU)
   TITLE:=Common NFS filesystem modules
-  DEPENDS:=+kmod-oid-registry
   KCONFIG:= \
 	CONFIG_LOCKD \
 	CONFIG_SUNRPC \
-	CONFIG_GRACE_PERIOD \
-	CONFIG_NFS_V4=y \
-	CONFIG_NFS_V4_1=y \
-	CONFIG_NFS_V4_1_IMPLEMENTATION_ID_DOMAIN="kernel.org" \
-	CONFIG_NFS_V4_1_MIGRATION=n \
-	CONFIG_NFS_V4_2=y \
-	CONFIG_NFS_V4_2_READ_PLUS=n
+	CONFIG_GRACE_PERIOD
   FILES:= \
 	$(LINUX_DIR)/fs/lockd/lockd.ko \
 	$(LINUX_DIR)/net/sunrpc/sunrpc.ko \
@@ -458,15 +408,15 @@ define KernelPackage/fs-nfs-common-rpcsec
 	+kmod-crypto-sha1 \
 	+kmod-crypto-hmac \
 	+kmod-crypto-ecb \
-	+kmod-crypto-arc4 \
-	+kmod-oid-registry
+	+kmod-crypto-arc4
   KCONFIG:= \
 	CONFIG_SUNRPC_GSS \
 	CONFIG_RPCSEC_GSS_KRB5
   FILES:= \
+	$(LINUX_DIR)/lib/oid_registry.ko \
 	$(LINUX_DIR)/net/sunrpc/auth_gss/auth_rpcgss.ko \
 	$(LINUX_DIR)/net/sunrpc/auth_gss/rpcsec_gss_krb5.ko
-  AUTOLOAD:=$(call AutoLoad,31,auth_rpcgss rpcsec_gss_krb5)
+  AUTOLOAD:=$(call AutoLoad,31,oid_registry auth_rpcgss rpcsec_gss_krb5)
 endef
 
 define KernelPackage/fs-nfs-common-rpcsec/description
@@ -521,8 +471,7 @@ define KernelPackage/fs-nfsd
 	CONFIG_NFSD_BLOCKLAYOUT=n \
 	CONFIG_NFSD_SCSILAYOUT=n \
 	CONFIG_NFSD_FLEXFILELAYOUT=n \
-	CONFIG_NFSD_FAULT_INJECTION=n \
-	CONFIG_NFSD_V4_2_INTER_SSC=n
+	CONFIG_NFSD_FAULT_INJECTION=n
   FILES:=$(LINUX_DIR)/fs/nfsd/nfsd.ko
   AUTOLOAD:=$(call AutoLoad,40,nfsd)
 endef
@@ -536,7 +485,7 @@ $(eval $(call KernelPackage,fs-nfsd))
 
 define KernelPackage/fs-ntfs
   SUBMENU:=$(FS_MENU)
-  TITLE:=NTFS filesystem read-only (old driver) support
+  TITLE:=NTFS filesystem support
   KCONFIG:=CONFIG_NTFS_FS
   FILES:=$(LINUX_DIR)/fs/ntfs/ntfs.ko
   AUTOLOAD:=$(call AutoLoad,30,ntfs)
@@ -544,30 +493,10 @@ define KernelPackage/fs-ntfs
 endef
 
 define KernelPackage/fs-ntfs/description
- Kernel module for limited NTFS filesystem support. Support for writing
- is extremely limited and disabled as a result.
+ Kernel module for NTFS filesystem support
 endef
 
 $(eval $(call KernelPackage,fs-ntfs))
-
-
-define KernelPackage/fs-ntfs3
-  SUBMENU:=$(FS_MENU)
-  TITLE:=NTFS filesystem read & write (new driver) support
-  KCONFIG:= CONFIG_NTFS3_FS CONFIG_NTFS3_FS_POSIX_ACL=y
-  FILES:=$(LINUX_DIR)/fs/ntfs3/ntfs3.ko
-  $(call AddDepends/nls)
-  AUTOLOAD:=$(call AutoLoad,80,ntfs3)
-endef
-
-define KernelPackage/fs-ntfs3/description
- Kernel module for fully functional NTFS filesystem support. It allows
- reading as well as writing.
-
- It supports NTFS versions up to 3.1.
-endef
-
-$(eval $(call KernelPackage,fs-ntfs3))
 
 
 define KernelPackage/fs-reiserfs
@@ -627,7 +556,7 @@ define KernelPackage/fs-vfat
   FILES:= \
 	$(LINUX_DIR)/fs/fat/fat.ko \
 	$(LINUX_DIR)/fs/fat/vfat.ko
-  AUTOLOAD:=$(call AutoLoad,30,fat vfat,1)
+  AUTOLOAD:=$(call AutoLoad,30,fat vfat)
   $(call AddDepends/nls,cp437 iso8859-1 utf8)
 endef
 
@@ -636,22 +565,6 @@ define KernelPackage/fs-vfat/description
 endef
 
 $(eval $(call KernelPackage,fs-vfat))
-
-
-define KernelPackage/fs-virtiofs
-  SUBMENU:=$(FS_MENU)
-  TITLE:=Virtiofs filesystem support
-  DEPENDS:=+kmod-fuse
-  KCONFIG:=CONFIG_VIRTIO_FS
-  FILES:=$(LINUX_DIR)/fs/fuse/virtiofs.ko
-  AUTOLOAD:=$(call AutoLoad,30,virtiofs)
-endef
-
-define KernelPackage/fs-virtiofs/description
-  Kernel module for Virtiofs filesystem support
-endef
-
-$(eval $(call KernelPackage,fs-virtiofs))
 
 
 define KernelPackage/fs-xfs
