@@ -1,115 +1,126 @@
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2021-01-19 21:13+0000\n"
-"Last-Translator: akibou <jinwenxin1997@icloud.com>\n"
-"Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
-"openwrt/luciapplicationslxc/zh_Hant/>\n"
-"Language: zh_Hant\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2023-12-02 18:04+0000\n"
+"Last-Translator: Džiugas J <dziugas1959@hotmail.com>\n"
+"Language-Team: Lithuanian <https://hosted.weblate.org/projects/openwrt/"
+"luciapplicationslxc/lt/>\n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.5-dev\n"
+"Plural-Forms: nplurals=3; plural=(n % 10 == 1 && (n % 100 < 11 || n % 100 > "
+"19)) ? 0 : ((n % 10 >= 2 && n % 10 <= 9 && (n % 100 < 11 || n % 100 > 19)) ? "
+"1 : 2);\n"
+"X-Generator: Weblate 5.3-dev\n"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:18
 msgid ""
 "<b>Please note:</b> LXC Containers require features not available on OpenWrt "
 "images for devices with small flash.<br />"
-msgstr "<b>請注意：</b>對於具有較小閃存的設備，LXC容器需要OpenWrt映像上不提供的功能。<br />"
+msgstr ""
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:29
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:47
 msgid "Actions"
-msgstr "動作"
+msgstr "Veiksmai"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:19
 msgid "Also you may want to install 'kmod-veth' for optional network support."
-msgstr "另外，您可能需要安裝 'kmod-veth' 以獲得可選的網路支援。"
+msgstr ""
+"Jūs tai pat galimai norėsite įdiegti „kmod-veth“, norint gauti pasirinktinį "
+"tinklo palaikymą."
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:23
 msgid "Available Containers"
-msgstr "可用的容器"
+msgstr "Galimi konteineriai"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:25
 msgid "Containers URL"
-msgstr "容器網址"
+msgstr "Konteinerių „URL“"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:53
 msgid "Create"
-msgstr "創造"
+msgstr "Sukurti"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:41
 msgid "Create New Container"
-msgstr "創建新容器"
+msgstr "Sukurti naują konteinerį"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:133
 msgid "Delete"
-msgstr "刪除"
+msgstr "Ištrinti"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:31
 msgid "Enable SSL"
-msgstr "啟用 SSL"
+msgstr "Įjungti/Įgalinti „SSL“"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:32
 msgid ""
 "Enable optional SSL encryption support. This requires additional packages "
 "like 'wget', 'ca-certificates', 'gnupg' and 'gnupg-utils'."
 msgstr ""
-"啟用可選的SSL加密支援。這需要其他套件包，例如 'wget'，'ca-certificates'，'gnupg' 和 'gnupg-utils'。"
+"Įjungti/Įgalinti pasirinktinį „SSL“ šifravimo palaikymą. Tai reikalaują "
+"papildomų paketų kaip: „wget“, „ca-certificates“, „gnupg“ ir „gnupg-utils“."
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:50
 msgid "Enter new name"
-msgstr "輸入新名字"
+msgstr "Įveskite naują pavadinimą"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:36
 msgid "Free Space Threshold"
-msgstr "可用空間閾值"
+msgstr "Laisvos vietos slenkstis"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:42
 msgid "Free Temp Threshold"
-msgstr "自由溫度閾值"
+msgstr "Laisvos laikinos vietos slenkstis"
 
 #: applications/luci-app-lxc/root/usr/share/rpcd/acl.d/luci-app-lxc.json:3
 msgid "Grant UCI access for luci-app-lxc"
-msgstr "授予 luci-app-lxc 擁有 UCI 存取的權限"
+msgstr "Suteikti „UCI“ prieigą – „luci-app-lxc“"
 
 #: applications/luci-app-lxc/luasrc/controller/lxc.lua:31
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:17
 msgid "LXC Containers"
-msgstr "LXC容器"
+msgstr "„LXC“ konteineriai"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:73
 msgid "Loading"
-msgstr "正在載入中"
+msgstr "Kraunama"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:37
 msgid "Minimum required free space for LXC Container creation in KB"
-msgstr "LXC容器創建所需的最小可用空間（以KB為單位）"
+msgstr ""
+"Minimalus reikalaujamas laisvos vietos kiekis kilobaitais (KB), „LXC“ "
+"konteinerio kūrimui"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:43
 msgid "Minimum required free temp space for LXC Container creation in KB"
-msgstr "LXC容器創建所需的最小臨時空間（以KB為單位）"
+msgstr ""
+"Minimalus reikalaujamas laisvos laikinos vietos kiekis kilobaitais (KB), "
+"„LXC“ konteinerio kūrimui"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:27
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:45
 msgid "Name"
-msgstr "名稱"
+msgstr "Vardas/Pavadinimas"
 
 #: applications/luci-app-lxc/luasrc/model/cbi/lxc.lua:22
 msgid "Options"
-msgstr "選項"
+msgstr "Parametrai"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:131
 msgid "Start"
-msgstr "啟動"
+msgstr "Pradėti"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:28
 msgid "Status"
-msgstr "狀態"
+msgstr "Būklė/Būsena"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:132
 msgid "Stop"
-msgstr "停止"
+msgstr "Stop"
 
 #: applications/luci-app-lxc/luasrc/view/lxc.htm:46
 msgid "Template"
-msgstr "模板"
+msgstr "Šablonas"
