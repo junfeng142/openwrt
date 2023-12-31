@@ -90,6 +90,21 @@ endef
 $(eval $(call KernelPackage,ata-artop))
 
 
+define KernelPackage/ata-marvell-sata
+  TITLE:=Marvell Serial ATA support
+  KCONFIG:=CONFIG_SATA_MV
+  FILES:=$(LINUX_DIR)/drivers/ata/sata_mv.ko
+  AUTOLOAD:=$(call AutoLoad,41,sata_mv,1)
+  $(call AddDepends/ata)
+endef
+
+define KernelPackage/ata-marvell-sata/description
+ SATA support for marvell chipsets
+endef
+
+$(eval $(call KernelPackage,ata-marvell-sata))
+
+
 define KernelPackage/ata-nvidia-sata
   TITLE:=Nvidia Serial ATA support
   KCONFIG:=CONFIG_SATA_NV
@@ -228,7 +243,7 @@ define KernelPackage/dm
     $(LINUX_DIR)/drivers/md/dm-log.ko \
     $(LINUX_DIR)/drivers/md/dm-mirror.ko \
     $(LINUX_DIR)/drivers/md/dm-region-hash.ko
-  AUTOLOAD:=$(call AutoLoad,30,dm-mod dm-log dm-region-hash dm-mirror dm-crypt,1)
+  AUTOLOAD:=$(call AutoLoad,30,dm-mod dm-log dm-region-hash dm-mirror dm-crypt)
 endef
 
 define KernelPackage/dm/description
@@ -450,7 +465,7 @@ define KernelPackage/loop
 	CONFIG_BLK_DEV_LOOP \
 	CONFIG_BLK_DEV_CRYPTOLOOP=n
   FILES:=$(LINUX_DIR)/drivers/block/loop.ko
-  AUTOLOAD:=$(call AutoLoad,30,loop,1)
+  AUTOLOAD:=$(call AutoLoad,30,loop)
 endef
 
 define KernelPackage/loop/description
@@ -521,7 +536,7 @@ define KernelPackage/scsi-core
   TITLE:=SCSI device support
   KCONFIG:= \
 	CONFIG_SCSI \
-	CONFIG_SCSI_COMMON \
+  CONFIG_SCSI_COMMON@ge5.15 \
 	CONFIG_BLK_DEV_SD
   FILES:= \
 	$(LINUX_DIR)/drivers/scsi/scsi_mod.ko \

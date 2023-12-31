@@ -99,7 +99,8 @@ define Package/nas/description
  proprietary Broadcom wl driver.
 endef
 
-MAKE_KMOD := $(KERNEL_MAKE) \
+MAKE_KMOD := $(MAKE) -C "$(LINUX_DIR)" \
+		$(KERNEL_MAKE_FLAGS) \
 		PATH="$(TARGET_PATH)" \
 		M="$(PKG_BUILD_DIR)/kmod" \
 

@@ -12,9 +12,7 @@ PKG_NAME:=kernel
 PKG_FLAGS:=hold
 
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/packages
-SUBTARGETS = $(sort $(filter-out feeds,$(notdir $(wildcard $(TOPDIR)/target/linux/* $(TOPDIR)/target/linux/feeds/*))))
-SUBTARGET_MODULES = $(foreach t,$(SUBTARGETS),$(firstword $(wildcard $(TOPDIR)/target/linux/feeds/$(t)/modules.mk $(TOPDIR)/target/linux/$(t)/modules.mk)))
-SCAN_DEPS=modules/*.mk $(SUBTARGET_MODULES) $(TOPDIR)/include/netfilter.mk
+SCAN_DEPS=modules/*.mk $(TOPDIR)/target/linux/*/modules.mk $(TOPDIR)/include/netfilter.mk
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=
@@ -65,4 +63,4 @@ endef
 $(eval $(if $(DUMP),,$(call BuildPackage,kernel)))
 
 include $(sort $(wildcard ./modules/*.mk))
--include $(SUBTARGET_MODULES)
+-include $(TOPDIR)/target/linux/*/modules.mk
