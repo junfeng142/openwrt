@@ -4,7 +4,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=webd
-PKG_VERSION:=20220327
+PKG_VERSION:=20230604
 PKG_RELEASE:=$(AUTORELESE)
 
 include $(INCLUDE_DIR)/package.mk
@@ -77,7 +77,7 @@ ifeq ($(ARCH),x86_64)
 endif
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-openwrt-$(TARGET_ARCH).tar.gz
-PKG_SOURCE_URL:=https://gwgw.ga/webd/$(PKG_VERSION)/
+PKG_SOURCE_URL:=https://cnt2.cf/fidx.html#/$(PKG_VERSION)/
 PKG_HASH:=skip
 
 UNTAR_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
