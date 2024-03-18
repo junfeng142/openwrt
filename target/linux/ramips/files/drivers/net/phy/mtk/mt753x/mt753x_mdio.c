@@ -6,7 +6,6 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
-#include <linux/version.h>
 #include <linux/init.h>
 #include <linux/device.h>
 #include <linux/delay.h>
@@ -40,8 +39,20 @@ u32 mt753x_reg_read(struct gsw_mt753x *gsw, u32 reg)
 {
 	u32 high, low;
 
-	mutex_lock(&gsw->host_bus->mdio_lock);
-
+	if (!IS_ERR_OR_NULL(gsw->base)) {
+#if MT7988_FPGA
+		/* Top registers are removed on Jaguar,
+		   Temporarily, let switch application can get the chip-name.
+		*/
+		if (reg == 0x781C)
+			return 0x75310001;
+#endif
+		mutex_lock(&gsw->host_bus->mdio_lock);
+		low = __raw_readl(gsw->base + reg);
+		mutex_unlock(&gsw->host_bus->mdio_lock);
+		return low;
+	} else {
+		mutex_lock(&gsw->host_bus->mdio_lock);
 	gsw->host_bus->write(gsw->host_bus, gsw->smi_addr, 0x1f,
 		(reg & MT753X_REG_PAGE_ADDR_M) >> MT753X_REG_PAGE_ADDR_S);
 
@@ -53,19 +64,24 @@ u32 mt753x_reg_read(struct gsw_mt753x *gsw, u32 reg)
 	mutex_unlock(&gsw->host_bus->mdio_lock);
 
 	return (high << 16) | (low & 0xffff);
+	}
 }
 
 void mt753x_reg_write(struct gsw_mt753x *gsw, u32 reg, u32 val)
 {
 	mutex_lock(&gsw->host_bus->mdio_lock);
 
-	gsw->host_bus->write(gsw->host_bus, gsw->smi_addr, 0x1f,
-		(reg & MT753X_REG_PAGE_ADDR_M) >> MT753X_REG_PAGE_ADDR_S);
+	if (!IS_ERR_OR_NULL(gsw->base)) {
+		__raw_writel(val, gsw->base + reg);
+	} else {
+		gsw->host_bus->write(gsw->host_bus, gsw->smi_addr, 0x1f,
+			(reg & MT753X_REG_PAGE_ADDR_M) >> MT753X_REG_PAGE_ADDR_S);
 
-	gsw->host_bus->write(gsw->host_bus, gsw->smi_addr,
-		(reg & MT753X_REG_ADDR_M) >> MT753X_REG_ADDR_S, val & 0xffff);
+		gsw->host_bus->write(gsw->host_bus, gsw->smi_addr,
+			(reg & MT753X_REG_ADDR_M) >> MT753X_REG_ADDR_S, val & 0xffff);
 
-	gsw->host_bus->write(gsw->host_bus, gsw->smi_addr, 0x10, val >> 16);
+		gsw->host_bus->write(gsw->host_bus, gsw->smi_addr, 0x10, val >> 16);
+	}
 
 	mutex_unlock(&gsw->host_bus->mdio_lock);
 }
@@ -240,6 +256,7 @@ static void mt753x_load_port_cfg(struct gsw_mt753x *gsw)
 	struct device_node *fixed_link_node;
 	struct mt753x_port_cfg *port_cfg;
 	u32 port;
+	int ret;
 
 	for_each_child_of_node(gsw->dev->of_node, port_np) {
 		if (!of_device_is_compatible(port_np, "mediatek,mt753x-port"))
@@ -270,13 +287,8 @@ static void mt753x_load_port_cfg(struct gsw_mt753x *gsw)
 
 		port_cfg->np = port_np;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-		port_cfg->phy_mode = of_get_phy_mode(port_np);
-		if (port_cfg->phy_mode < 0) {
-#else
-		of_get_phy_mode(port_np, &port_cfg->phy_mode);
-		if (port_cfg->phy_mode == PHY_INTERFACE_MODE_NA) {
-#endif
+		ret = of_get_phy_mode(port_np, &port_cfg->phy_mode);
+		if (ret < 0) {
 			dev_info(gsw->dev, "incorrect phy-mode %d\n", port);
 			continue;
 		}
@@ -309,6 +321,7 @@ static void mt753x_load_port_cfg(struct gsw_mt753x *gsw)
 			case 2500:
 				port_cfg->speed = MAC_SPD_2500;
 				break;
+
 			default:
 				dev_info(gsw->dev, "incorrect speed %d\n",
 					 speed);
@@ -452,8 +465,10 @@ struct gsw_mt753x *mt753x_get_gsw(u32 id)
 	mutex_lock(&mt753x_devs_lock);
 
 	list_for_each_entry(dev, &mt753x_devs, list) {
-		if (dev->id == id)
+		if (dev->id == id) {
+			mutex_unlock(&mt753x_devs_lock);
 			return dev;
+		}
 	}
 
 	mutex_unlock(&mt753x_devs_lock);
@@ -467,8 +482,10 @@ struct gsw_mt753x *mt753x_get_first_gsw(void)
 
 	mutex_lock(&mt753x_devs_lock);
 
-	list_for_each_entry(dev, &mt753x_devs, list)
+	list_for_each_entry(dev, &mt753x_devs, list) {
+		mutex_unlock(&mt753x_devs_lock);
 		return dev;
+	}
 
 	mutex_unlock(&mt753x_devs_lock);
 
@@ -529,7 +546,7 @@ static int mt753x_hw_reset(struct gsw_mt753x *gsw)
 
 	return 0;
 }
-
+#if 1 //XDXDXDXD
 static int mt753x_mdio_read(struct mii_bus *bus, int addr, int reg)
 {
 	struct gsw_mt753x *gsw = bus->priv;
@@ -572,11 +589,8 @@ static void mt753x_connect_internal_phys(struct gsw_mt753x *gsw,
 {
 	struct device_node *phy_np;
 	struct mt753x_phy *phy;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-	int phy_mode;
-#else
-	phy_interface_t phy_mode = PHY_INTERFACE_MODE_NA;
-#endif
+	phy_interface_t iface;
+	int ret;
 	u32 phyad;
 
 	if (!mii_np)
@@ -589,15 +603,10 @@ static void mt753x_connect_internal_phys(struct gsw_mt753x *gsw,
 		if (phyad >= MT753X_NUM_PHYS)
 			continue;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-		phy_mode = of_get_phy_mode(phy_np);
-		if (phy_mode < 0) {
-#else
-		of_get_phy_mode(phy_np, &phy_mode);
-		if (phy_mode == PHY_INTERFACE_MODE_NA) {
-#endif
+		ret = of_get_phy_mode(phy_np, &iface);
+		if (ret < 0) {
 			dev_info(gsw->dev, "incorrect phy-mode %d for PHY %d\n",
-				 phy_mode, phyad);
+				 iface, phyad);
 			continue;
 		}
 
@@ -608,7 +617,7 @@ static void mt753x_connect_internal_phys(struct gsw_mt753x *gsw,
 		phy->netdev.netdev_ops = &mt753x_dummy_netdev_ops;
 
 		phy->phydev = of_phy_connect(&phy->netdev, phy_np,
-					mt753x_phy_link_handler, 0, phy_mode);
+					mt753x_phy_link_handler, 0, iface);
 		if (!phy->phydev) {
 			dev_info(gsw->dev, "could not connect to PHY %d\n",
 				 phyad);
@@ -670,9 +679,6 @@ static int mt753x_mdio_register(struct gsw_mt753x *gsw)
 	ret = of_mdiobus_register(gsw->gphy_bus, mii_np);
 
 	if (ret) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
-		devm_mdiobus_free(gsw->dev, gsw->gphy_bus);
-#endif
 		gsw->gphy_bus = NULL;
 	} else {
 		if (gsw->phy_status_poll)
@@ -685,6 +691,30 @@ err_put_node:
 
 	return ret;
 }
+#endif
+
+#ifdef MT7988_FPGA
+u32 mt753x_direct_read(u32 reg)
+{
+	struct gsw_mt753x *gsw = mt753x_get_first_gsw();
+
+	if (gsw)
+		return mt753x_reg_read(gsw, reg);
+	else
+		return 0;
+}
+EXPORT_SYMBOL(mt753x_direct_read);
+
+void mt753x_direct_write(u32 reg, u32 value)
+{
+	struct gsw_mt753x *gsw = mt753x_get_first_gsw();
+
+	if (gsw) {
+		mt753x_reg_write(gsw, reg, value);
+	}
+}
+EXPORT_SYMBOL(mt753x_direct_write);
+#endif
 
 static irqreturn_t mt753x_irq_handler(int irq, void *dev)
 {
@@ -721,13 +751,25 @@ static int mt753x_probe(struct platform_device *pdev)
 	if (!gsw)
 		return -ENOMEM;
 
+#if MT7988_FPGA
+	gsw->base = devm_platform_ioremap_resource(pdev, 0);
+	if (IS_ERR_OR_NULL(gsw->base)) {
+		dev_err(&pdev->dev, "switch ioremap fail.\n");
+		goto fail;
+	}
+#endif
 	gsw->host_bus = mdio_bus;
 	gsw->dev = &pdev->dev;
 	mutex_init(&gsw->mii_lock);
 
+	/* remove it temporarily */
+#if !MT7988_FPGA
 	/* Switch hard reset */
-	if (mt753x_hw_reset(gsw))
+	if (mt753x_hw_reset(gsw)) {
+		dev_info(&pdev->dev, "reset switch fail.\n");
 		goto fail;
+	}
+#endif
 
 	/* Fetch the SMI address dirst */
 	if (of_property_read_u32(np, "mediatek,smi-addr", &gsw->smi_addr))
@@ -788,8 +830,10 @@ static int mt753x_probe(struct platform_device *pdev)
 						     "mediatek,phy-poll");
 
 	mt753x_add_gsw(gsw);
-
+#if 1 //XDXD
 	mt753x_mdio_register(gsw);
+#endif
+
 	mt753x_swconfig_init(gsw);
 
 	if (sw->post_init)
@@ -820,9 +864,11 @@ static int mt753x_remove(struct platform_device *pdev)
 	mt753x_swconfig_destroy(gsw);
 #endif
 
+#if 1 //XDXD
 	mt753x_disconnect_internal_phys(gsw);
 
 	mdiobus_unregister(gsw->gphy_bus);
+#endif
 
 	mt753x_remove_gsw(gsw);
 
